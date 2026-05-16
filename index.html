@@ -1,0 +1,3586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SRS学習帳 — 生成AIパスポート</title>
+  <style>
+    /* ===== CSS変数 ===== */
+    :root {
+      /* コアカラー */
+      --color-primary: #3A7AFE;
+      --color-primary-light: #EFF6FF;
+      --color-primary-dark: #1E40AF;
+
+      --color-danger: #FF4D4F;
+      --color-danger-light: #FEE2E2;
+      --color-danger-dark: #991B1B;
+
+      --color-warning: #F59E0B;
+      --color-warning-light: #FEF3C7;
+      --color-warning-dark: #92400E;
+
+      --color-success: #10B981;
+      --color-success-light: #ECFDF5;
+      --color-success-dark: #065F46;
+
+      /* ニュートラル */
+      --color-bg: #F7F9FC;
+      --color-surface: #FFFFFF;
+      --color-text-primary: #1F2937;
+      --color-text-secondary: #6B7280;
+      --color-text-tertiary: #9CA3AF;
+      --color-border: rgba(0, 0, 0, 0.1);
+      --color-border-strong: #E5E7EB;
+      --color-divider: #F3F4F6;
+
+      /* タイポグラフィ */
+      --font-sans: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+      --font-number: 'SF Pro Rounded', system-ui, -apple-system, sans-serif;
+
+      /* スペーシング */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+
+      /* 角丸 */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+
+      /* ボーダー */
+      --border-thin: 0.5px solid var(--color-border);
+      --border-medium: 1px solid var(--color-border-strong);
+    }
+
+    /* ===== リセット ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--color-text-primary);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    button {
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+
+    input, textarea, select {
+      font-family: var(--font-sans);
+    }
+
+    /* ===== レイアウト ===== */
+    .app-container {
+      max-width: 500px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--color-bg);
+      padding-bottom: calc(70px + env(safe-area-inset-bottom));
+      position: relative;
+    }
+
+    .page-header {
+      position: sticky;
+      top: 0;
+      background: var(--color-surface);
+      padding: 14px var(--space-4);
+      border-bottom: var(--border-thin);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 50px;
+    }
+
+    .page-header__title {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .page-content {
+      padding: var(--space-4);
+    }
+
+    /* ===== ビュー制御 ===== */
+    .view {
+      display: none;
+    }
+    .view.active {
+      display: block;
+    }
+
+    /* ===== ボトムナビゲーション ===== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: stretch;
+      padding: 10px 0;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      background: var(--color-surface);
+      border-top: var(--border-thin);
+      max-width: 500px;
+      margin: 0 auto;
+      z-index: 50;
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--color-text-tertiary);
+      font-size: 11px;
+      font-weight: 400;
+      background: transparent;
+      border: none;
+      padding: 6px 20px;
+      min-height: 44px;
+      min-width: 64px;
+      letter-spacing: 0.3px;
+      transition: color 0.15s ease;
+    }
+
+    .bottom-nav-item.active {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    .bottom-nav-item svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* ===== ボタン ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      padding: 12px var(--space-4);
+      font-size: 14px;
+      font-weight: 500;
+      min-height: 44px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .btn:active { opacity: 0.85; }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: white;
+      width: 100%;
+    }
+
+    .btn-text {
+      background: transparent;
+      color: var(--color-primary);
+      padding: 8px var(--space-3);
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      padding: 8px;
+      min-height: 44px;
+      min-width: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    /* ===== カード ===== */
+    .card {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: var(--border-thin);
+    }
+
+    /* ===== ヒーローカード ===== */
+    .hero-card {
+      background: var(--color-primary);
+      color: white;
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: var(--space-4);
+    }
+
+    .hero-card__label {
+      font-size: 12px;
+      font-weight: 400;
+      opacity: 0.8;
+      margin-bottom: 6px;
+    }
+
+    .hero-card__number {
+      font-family: var(--font-number);
+      font-size: 38px;
+      font-weight: 500;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .hero-card__unit {
+      font-size: 16px;
+      font-weight: 400;
+      margin-left: 4px;
+    }
+
+    .hero-card__subtitle {
+      font-size: 12px;
+      opacity: 0.75;
+      margin-bottom: 16px;
+    }
+
+    /* ===== セクション ===== */
+    .section {
+      margin-bottom: var(--space-6);
+    }
+
+    .section__title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-3);
+    }
+
+    /* ===== 復習予定セクション ===== */
+    .review-schedule {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: var(--border-thin);
+      overflow: hidden;
+    }
+
+    .review-schedule-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 14px var(--space-4);
+      border-bottom: var(--border-thin);
+    }
+
+    .review-schedule-item:last-child {
+      border-bottom: none;
+    }
+
+    .review-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .review-dot--overdue { background: var(--color-danger); }
+    .review-dot--today   { background: var(--color-primary); }
+    .review-dot--tomorrow{ background: var(--color-text-tertiary); }
+
+    .review-schedule-item__label {
+      flex: 1;
+      font-size: 14px;
+      color: var(--color-text-secondary);
+    }
+
+    .review-schedule-item__count {
+      font-family: var(--font-number);
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .review-schedule-item__unit {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-left: 2px;
+    }
+
+    /* ===== 進捗セクション ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .stat-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: var(--border-thin);
+      padding: 14px var(--space-4);
+    }
+
+    .stat-card__label {
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .stat-card__value {
+      font-family: var(--font-number);
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      line-height: 1;
+    }
+
+    .stat-card__value-unit {
+      font-size: 14px;
+      font-weight: 400;
+      margin-left: 2px;
+    }
+
+    /* ===== グラフ（折れ線） ===== */
+    .graph-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: var(--border-thin);
+      padding: 14px var(--space-4);
+    }
+
+    .graph-card__label {
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+      letter-spacing: 0.5px;
+      margin-bottom: var(--space-3);
+    }
+
+    .graph-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-2);
+      height: 60px;
+    }
+
+    .graph-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .graph-bar {
+      width: 100%;
+      background: var(--color-primary-light);
+      border-radius: 3px 3px 0 0;
+      min-height: 3px;
+      transition: height 0.3s ease;
+    }
+
+    .graph-bar--today {
+      background: var(--color-primary);
+    }
+
+    .graph-day-label {
+      font-size: 10px;
+      color: var(--color-text-tertiary);
+      text-align: center;
+    }
+
+    /* ===== Cards画面 ===== */
+    .status-summary {
+      display: flex;
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: var(--border-thin);
+      overflow: hidden;
+      margin-bottom: var(--space-4);
+    }
+
+    .status-summary-item {
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      border-right: var(--border-thin);
+    }
+
+    .status-summary-item:last-child {
+      border-right: none;
+    }
+
+    .status-summary-item__value {
+      font-family: var(--font-number);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .status-summary-item__label {
+      font-size: 10px;
+      color: var(--color-text-tertiary);
+      letter-spacing: 0.3px;
+    }
+
+    /* ===== 章フィルタチップ ===== */
+    .chapter-filter-wrap {
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: var(--space-4);
+      scrollbar-width: none;
+    }
+
+    .chapter-filter-wrap::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chapter-filter-chips {
+      display: flex;
+      gap: var(--space-2);
+      white-space: nowrap;
+      padding: 2px 0;
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 400;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .chip-active {
+      background: var(--color-primary);
+      color: white;
+      font-weight: 500;
+    }
+
+    .chip-default {
+      background: #F3F4F6;
+      color: #4B5563;
+    }
+
+    /* ===== カードリスト ===== */
+    .card-list {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: var(--border-thin);
+      overflow: hidden;
+    }
+
+    .card-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 14px var(--space-4);
+      border-bottom: var(--border-thin);
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    .card-item:last-child {
+      border-bottom: none;
+    }
+
+    .card-item:active {
+      background: var(--color-bg);
+    }
+
+    .card-item__status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot--new      { background: var(--color-primary); }
+    .dot--learning { background: var(--color-warning); }
+    .dot--mastered { background: var(--color-success); }
+    .dot--overdue  { background: var(--color-danger); }
+
+    .card-item__body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-item__front {
+      font-size: 14px;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+
+    .card-item__meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+    }
+
+    .card-item__next-review {
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+    }
+
+    .card-item__arrow {
+      color: var(--color-text-tertiary);
+      flex-shrink: 0;
+    }
+
+    /* ===== FAB ===== */
+    .fab {
+      position: fixed;
+      right: 16px;
+      bottom: calc(80px + env(safe-area-inset-bottom));
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      cursor: pointer;
+      z-index: 20;
+      transition: opacity 0.15s ease;
+    }
+
+    .fab:active { opacity: 0.85; }
+
+    @media (min-width: 500px) {
+      .fab { right: calc(50% - 250px + 16px); }
+    }
+
+    /* ===== Profile画面 ===== */
+    .profile-section {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: var(--border-thin);
+      overflow: hidden;
+      margin-bottom: var(--space-4);
+    }
+
+    .profile-section__header {
+      padding: 12px var(--space-4);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.5px;
+      background: var(--color-bg);
+      border-bottom: var(--border-thin);
+    }
+
+    .profile-section__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px var(--space-4);
+      border-bottom: var(--border-thin);
+    }
+
+    .profile-section__row:last-child {
+      border-bottom: none;
+    }
+
+    .profile-section__row-label {
+      font-size: 14px;
+      color: var(--color-text-primary);
+    }
+
+    .profile-section__row-value {
+      font-family: var(--font-number);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    /* ===== トースト ===== */
+    .toast-container {
+      position: fixed;
+      bottom: calc(90px + env(safe-area-inset-bottom));
+      left: 16px;
+      right: 16px;
+      max-width: calc(500px - 32px);
+      margin: 0 auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: #1F2937;
+      color: white;
+      padding: 12px var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      animation: toast-in 0.2s ease, toast-out 0.2s ease 2.8s forwards;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .toast-success { background: var(--color-success); }
+    .toast-error   { background: var(--color-danger); }
+    .toast-warning { background: var(--color-warning); color: var(--color-warning-dark); }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes toast-out {
+      to { opacity: 0; transform: translateY(10px); }
+    }
+
+    /* ===== 空のステート ===== */
+    .empty-state {
+      text-align: center;
+      padding: var(--space-8) var(--space-4);
+      color: var(--color-text-tertiary);
+    }
+
+    .empty-state__icon {
+      font-size: 40px;
+      margin-bottom: var(--space-3);
+    }
+
+    .empty-state__title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-2);
+    }
+
+    .empty-state__desc {
+      font-size: 13px;
+    }
+
+    /* ===== レスポンシブ ===== */
+    @media (min-width: 768px) {
+      .app-container { max-width: 500px; }
+    }
+
+    @media (min-width: 500px) {
+      .session-overlay {
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+        width: 500px;
+      }
+    }
+
+    /* ===== カード作成・詳細 オーバーレイ共通 ===== */
+    .card-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--color-bg);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      max-width: 500px;
+      margin: 0 auto;
+      overflow-y: auto;
+    }
+
+    @media (min-width: 500px) {
+      .card-overlay {
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+        width: 500px;
+      }
+    }
+
+    .card-overlay__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px var(--space-4);
+      background: var(--color-surface);
+      border-bottom: var(--border-thin);
+      min-height: 50px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .card-overlay__title {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .card-overlay__content {
+      padding: var(--space-4);
+      flex: 1;
+    }
+
+    /* ===== フォームパーツ ===== */
+    .form-group {
+      margin-bottom: var(--space-5);
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .form-label--required::after {
+      content: " *";
+      color: var(--color-danger);
+    }
+
+    .input-field {
+      background: var(--color-surface);
+      border: var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      min-height: 44px;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+      color: var(--color-text-primary);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    .textarea-field {
+      min-height: 80px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .textarea-field--large {
+      min-height: 100px;
+    }
+
+    select.input-field {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    /* ===== タグ入力エリア ===== */
+    .tag-input-area {
+      background: var(--color-surface);
+      border: var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      min-height: 44px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      cursor: text;
+    }
+
+    .tag-input-area:focus-within {
+      border-color: var(--color-primary);
+    }
+
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px 3px 10px;
+      background: var(--color-primary-light);
+      color: var(--color-primary-dark);
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .tag-chip__remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-primary-dark);
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      opacity: 0.7;
+    }
+
+    .tag-chip__remove:hover { opacity: 1; }
+
+    .tag-text-input {
+      border: none;
+      outline: none;
+      font-size: 13px;
+      color: var(--color-text-primary);
+      flex: 1;
+      min-width: 80px;
+      background: transparent;
+      font-family: var(--font-sans);
+    }
+
+    .tag-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .tag-suggestion-chip {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      background: #F3F4F6;
+      color: #4B5563;
+      border: none;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .tag-suggestion-chip:hover {
+      background: var(--color-primary-light);
+      color: var(--color-primary-dark);
+    }
+
+    /* ===== カード詳細ビュー ===== */
+    .detail-section {
+      margin-bottom: var(--space-5);
+    }
+
+    .detail-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+    }
+
+    .detail-label-q { color: var(--color-primary); }
+    .detail-label-a { color: var(--color-success); }
+    .detail-label-note { color: var(--color-text-tertiary); }
+
+    .detail-text {
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--color-text-primary);
+    }
+
+    .detail-text--answer {
+      font-weight: 500;
+    }
+
+    .detail-text--note {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+    }
+
+    .detail-meta-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-3);
+    }
+
+    .detail-stat-card {
+      background: var(--color-surface);
+      border: var(--border-thin);
+      border-radius: var(--radius-md);
+      padding: 10px var(--space-3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-2);
+    }
+
+    .detail-stat-card__label {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    .detail-stat-card__value {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      font-family: var(--font-number);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--color-divider);
+      margin: var(--space-5) 0;
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      width: 100%;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      min-height: 44px;
+      transition: opacity 0.15s;
+    }
+
+    .btn-danger:active { opacity: 0.8; }
+
+    /* ===== Profile 拡張 ===== */
+    .profile-hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    .profile-hero-card {
+      background: var(--color-surface);
+      border: var(--border-thin);
+      border-radius: var(--radius-md);
+      padding: 14px var(--space-4);
+    }
+
+    .profile-hero-card--primary {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .profile-hero-card__label {
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: var(--color-text-tertiary);
+      margin-bottom: 6px;
+    }
+
+    .profile-hero-card--primary .profile-hero-card__label {
+      color: rgba(255,255,255,0.75);
+    }
+
+    .profile-hero-card__value {
+      font-family: var(--font-number);
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1;
+      color: var(--color-text-primary);
+    }
+
+    .profile-hero-card--primary .profile-hero-card__value {
+      color: white;
+    }
+
+    .profile-hero-card__unit {
+      font-size: 13px;
+      font-weight: 400;
+      margin-left: 2px;
+    }
+
+    /* ===== 章別進捗バー ===== */
+    .chapter-progress-list {
+      background: var(--color-surface);
+      border: var(--border-thin);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: var(--space-4);
+    }
+
+    .chapter-progress-item {
+      padding: 12px var(--space-4);
+      border-bottom: var(--border-thin);
+    }
+
+    .chapter-progress-item:last-child {
+      border-bottom: none;
+    }
+
+    .chapter-progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .chapter-progress-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .chapter-progress-pct {
+      font-family: var(--font-number);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+
+    .chapter-progress-bar-bg {
+      height: 6px;
+      background: var(--color-divider);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .chapter-progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .chapter-progress-counts {
+      display: flex;
+      gap: var(--space-3);
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+    }
+
+    .chapter-progress-counts span {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .count-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* ===== 月次グラフ ===== */
+    .monthly-graph-wrap {
+      background: var(--color-surface);
+      border: var(--border-thin);
+      border-radius: var(--radius-md);
+      padding: 14px var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+
+    .monthly-graph-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 60px;
+      margin-top: var(--space-3);
+    }
+
+    .monthly-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .monthly-bar {
+      width: 100%;
+      background: var(--color-primary-light);
+      border-radius: 2px 2px 0 0;
+      min-height: 2px;
+    }
+
+    .monthly-bar--today {
+      background: var(--color-primary);
+    }
+
+    /* ===== カード検索 ===== */
+    .search-bar-wrap {
+      padding: 10px var(--space-4);
+      background: var(--color-surface);
+      border-bottom: var(--border-thin);
+      display: none;
+    }
+
+    .search-bar-wrap.visible {
+      display: block;
+    }
+
+    .search-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: var(--color-bg);
+      border: var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+    }
+
+    .search-input-wrap:focus-within {
+      border-color: var(--color-primary);
+    }
+
+    .search-input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 14px;
+      color: var(--color-text-primary);
+      flex: 1;
+      font-family: var(--font-sans);
+    }
+
+    .search-input::placeholder {
+      color: var(--color-text-tertiary);
+    }
+
+    .search-clear-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-text-tertiary);
+      padding: 0;
+      display: flex;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .search-result-count {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      margin-top: 6px;
+      padding: 0 2px;
+    }
+
+    /* ===== 音声入力ボタン ===== */
+    .voice-input-btn {
+      background: transparent;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      min-height: 32px;
+      transition: all 0.15s ease;
+    }
+
+    .voice-input-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    .voice-input-btn.recording {
+      background: var(--color-danger-light);
+      border-color: var(--color-danger);
+      color: var(--color-danger);
+      animation: pulse-recording 1s ease infinite;
+    }
+
+    @keyframes pulse-recording {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .voice-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ===== テキストエリア + ボタンのラベル行 ===== */
+    .form-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    /* ===== SVG アイコン汎用 ===== */
+    .icon {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* ===== 学習セッション オーバーレイ ===== */
+    .session-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--color-bg);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      max-width: 500px;
+      margin: 0 auto;
+      overflow-y: auto;
+    }
+
+    .session-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px var(--space-4);
+      background: var(--color-surface);
+      border-bottom: var(--border-thin);
+      min-height: 50px;
+      flex-shrink: 0;
+    }
+
+    .session-progress-text {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      font-family: var(--font-number);
+    }
+
+    .progress-bar {
+      height: 3px;
+      background: var(--color-border-strong);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--color-primary);
+      transition: width 0.3s ease;
+    }
+
+    .session-content {
+      flex: 1;
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== 学習カード ===== */
+    .study-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: var(--border-thin);
+      padding: 28px 22px 24px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+      margin-bottom: var(--space-4);
+      flex: 1;
+    }
+
+    .study-card:active { opacity: 0.9; }
+
+    .study-card-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      margin-bottom: 14px;
+    }
+
+    .study-card-label-q { color: var(--color-primary); }
+    .study-card-label-a { color: var(--color-success); }
+
+    .study-card-front {
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--color-text-primary);
+      flex: 1;
+    }
+
+    .study-card-front--dimmed {
+      color: var(--color-text-tertiary);
+      font-size: 15px;
+    }
+
+    .study-card-back {
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1.6;
+      color: var(--color-text-primary);
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: var(--border-thin);
+    }
+
+    .study-card-note {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-top: 14px;
+      line-height: 1.6;
+    }
+
+    .study-card-hint {
+      margin-top: auto;
+      padding-top: var(--space-4);
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    /* ===== 評価ボタン ===== */
+    .rating-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--space-2);
+      flex-shrink: 0;
+      padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-2));
+    }
+
+    .rating-btn {
+      background: white;
+      border: 1px solid;
+      border-radius: var(--radius-md);
+      padding: 14px 4px;
+      min-height: 60px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: opacity 0.15s ease;
+    }
+
+    .rating-btn:active { opacity: 0.8; }
+
+    .rating-btn-forgotten {
+      border-color: var(--color-danger);
+    }
+    .rating-btn-forgotten .rating-label {
+      color: var(--color-danger);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .rating-btn-normal {
+      border-color: var(--color-warning);
+    }
+    .rating-btn-normal .rating-label {
+      color: var(--color-warning-dark);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .rating-btn-easy {
+      border-color: var(--color-primary);
+    }
+    .rating-btn-easy .rating-label {
+      color: var(--color-primary);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .rating-interval {
+      display: block;
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+    }
+
+    /* ===== セッション完了画面 ===== */
+    .session-complete {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      padding: var(--space-8) var(--space-4);
+      text-align: center;
+    }
+
+    .session-complete__emoji {
+      font-size: 56px;
+      margin-bottom: var(--space-4);
+    }
+
+    .session-complete__title {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-2);
+    }
+
+    .session-complete__subtitle {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-8);
+      line-height: 1.6;
+    }
+
+    .session-complete__stats {
+      display: flex;
+      gap: var(--space-6);
+      margin-bottom: var(--space-8);
+    }
+
+    .session-complete__stat {
+      text-align: center;
+    }
+
+    .session-complete__stat-value {
+      font-family: var(--font-number);
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .session-complete__stat-label {
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== SVG スプライト ===== -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-cards" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <rect x="2" y="5" width="20" height="14" rx="2"/>
+    <line x1="2" y1="10" x2="22" y2="10"/>
+  </symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="12" y1="5" x2="12" y2="19"/>
+    <line x1="5" y1="12" x2="19" y2="12"/>
+  </symbol>
+  <symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polyline points="9 18 15 12 9 6"/>
+  </symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <circle cx="11" cy="11" r="8"/>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="18" y1="6" x2="6" y2="18"/>
+    <line x1="6" y1="6" x2="18" y2="18"/>
+  </symbol>
+  <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </symbol>
+  <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+    <polyline points="17 8 12 3 7 8"/>
+    <line x1="12" y1="3" x2="12" y2="15"/>
+  </symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14H6L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4h6v2"/>
+  </symbol>
+  <symbol id="icon-sort" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <line x1="3" y1="12" x2="15" y2="12"/>
+    <line x1="3" y1="18" x2="9" y2="18"/>
+  </symbol>
+</svg>
+
+<!-- ===== アプリ本体 ===== -->
+<div class="app-container" id="app">
+
+  <!-- ===== Home ビュー (SC-01) ===== -->
+  <div class="view active" id="view-home">
+    <header class="page-header">
+      <span class="page-header__title">今日の学習</span>
+      <button class="btn-icon" aria-label="設定">
+        <svg class="icon" width="20" height="20"><use href="#icon-user"/></svg>
+      </button>
+    </header>
+
+    <main class="page-content" id="home-content">
+      <!-- ヒーローカード -->
+      <div class="hero-card" id="hero-card">
+        <div class="hero-card__label">今日の復習</div>
+        <div>
+          <span class="hero-card__number" id="hero-count">0</span>
+          <span class="hero-card__unit">枚</span>
+        </div>
+        <div class="hero-card__subtitle" id="hero-subtitle">読み込み中...</div>
+        <button class="btn" id="btn-start-session"
+          style="background:white;color:var(--color-primary);width:100%;margin-top:4px;"
+          onclick="startSession()">
+          学習を開始する
+        </button>
+      </div>
+
+      <!-- 復習予定 -->
+      <div class="section">
+        <div class="section__title">復習予定</div>
+        <div class="review-schedule" id="review-schedule">
+          <div class="review-schedule-item">
+            <span class="review-dot review-dot--overdue"></span>
+            <span class="review-schedule-item__label">期限超過</span>
+            <span class="review-schedule-item__count" id="count-overdue">0</span>
+            <span class="review-schedule-item__unit">枚</span>
+          </div>
+          <div class="review-schedule-item">
+            <span class="review-dot review-dot--today"></span>
+            <span class="review-schedule-item__label">今日</span>
+            <span class="review-schedule-item__count" id="count-today">0</span>
+            <span class="review-schedule-item__unit">枚</span>
+          </div>
+          <div class="review-schedule-item">
+            <span class="review-dot review-dot--tomorrow"></span>
+            <span class="review-schedule-item__label">明日</span>
+            <span class="review-schedule-item__count" id="count-tomorrow">0</span>
+            <span class="review-schedule-item__unit">枚</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 進捗 -->
+      <div class="section">
+        <div class="section__title">進捗</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card__label">連続学習</div>
+            <div class="stat-card__value">
+              <span id="stat-streak">0</span>
+              <span class="stat-card__value-unit">日</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__label">記憶定着率</div>
+            <div class="stat-card__value">
+              <span id="stat-retention">0</span>
+              <span class="stat-card__value-unit">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="graph-card">
+          <div class="graph-card__label">今週の復習枚数</div>
+          <div class="graph-bars" id="weekly-graph"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== Cards ビュー (SC-03) ===== -->
+  <div class="view" id="view-cards">
+    <header class="page-header">
+      <span class="page-header__title">カード一覧</span>
+      <div style="display:flex;gap:4px;">
+        <button class="btn-icon" aria-label="検索" id="btn-search-toggle" onclick="toggleSearch()">
+          <svg class="icon" width="20" height="20"><use href="#icon-search"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 検索バー -->
+    <div class="search-bar-wrap" id="search-bar-wrap">
+      <div class="search-input-wrap">
+        <svg class="icon" width="16" height="16" style="color:var(--color-text-tertiary);flex-shrink:0;"><use href="#icon-search"/></svg>
+        <input class="search-input" id="search-input" type="search"
+          placeholder="Q・A・タグで検索..."
+          oninput="onSearchInput()"
+          onkeydown="if(event.key==='Escape')toggleSearch()">
+        <button class="search-clear-btn" id="search-clear-btn" onclick="clearSearch()" aria-label="検索をクリア" style="display:none;">
+          <svg class="icon" width="16" height="16"><use href="#icon-x"/></svg>
+        </button>
+      </div>
+      <div class="search-result-count" id="search-result-count"></div>
+    </div>
+
+    <main class="page-content">
+      <!-- ステータスサマリ -->
+      <div class="status-summary" id="cards-summary">
+        <div class="status-summary-item">
+          <div class="status-summary-item__value" id="summary-total">0</div>
+          <div class="status-summary-item__label">全体</div>
+        </div>
+        <div class="status-summary-item">
+          <div class="status-summary-item__value" id="summary-new">0</div>
+          <div class="status-summary-item__label">新規</div>
+        </div>
+        <div class="status-summary-item">
+          <div class="status-summary-item__value" id="summary-learning">0</div>
+          <div class="status-summary-item__label">学習中</div>
+        </div>
+        <div class="status-summary-item">
+          <div class="status-summary-item__value" id="summary-mastered">0</div>
+          <div class="status-summary-item__label">習得済み</div>
+        </div>
+      </div>
+
+      <!-- 章フィルタチップ -->
+      <div class="chapter-filter-wrap">
+        <div class="chapter-filter-chips" id="chapter-filter-chips"></div>
+      </div>
+
+      <!-- カード一覧 -->
+      <div id="card-list-container"></div>
+    </main>
+
+    <!-- FAB -->
+    <button class="fab" aria-label="カードを作成" onclick="showCardCreate()">
+      <svg class="icon" width="24" height="24"><use href="#icon-plus"/></svg>
+    </button>
+  </div>
+
+  <!-- ===== Profile ビュー (SC-06) ===== -->
+  <div class="view" id="view-profile">
+    <header class="page-header">
+      <span class="page-header__title">プロフィール</span>
+    </header>
+    <main class="page-content" id="profile-content"></main>
+    <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+
+  <!-- ===== ボトムナビゲーション ===== -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="bottom-nav-item active" data-view="home" onclick="navigateTo('home')" aria-label="ホーム">
+      <svg class="icon" width="22" height="22"><use href="#icon-home"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="bottom-nav-item" data-view="cards" onclick="navigateTo('cards')" aria-label="カード">
+      <svg class="icon" width="22" height="22"><use href="#icon-cards"/></svg>
+      <span>Cards</span>
+    </button>
+    <button class="bottom-nav-item" data-view="profile" onclick="navigateTo('profile')" aria-label="プロフィール">
+      <svg class="icon" width="22" height="22"><use href="#icon-user"/></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- ===== トーストコンテナ ===== -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- ===== カード作成 オーバーレイ (SC-04) ===== -->
+  <div class="card-overlay" id="card-create-overlay" style="display:none" aria-label="カード作成">
+    <header class="card-overlay__header">
+      <button class="btn-icon" aria-label="閉じる" onclick="closeCardCreate()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <span class="card-overlay__title">カード作成</span>
+      <button class="btn-text" id="btn-save-card" onclick="saveCard()">保存</button>
+    </header>
+    <div class="card-overlay__content">
+      <div class="form-group">
+        <label class="form-label form-label--required" for="card-chapter">章</label>
+        <select class="input-field" id="card-chapter"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="tag-text-input-el">タグ</label>
+        <div class="tag-input-area" id="tag-input-area" onclick="document.getElementById('tag-text-input-el').focus()">
+          <input class="tag-text-input" id="tag-text-input-el"
+            placeholder="タグを入力してEnter"
+            oninput="renderTagSuggestions()"
+            onkeydown="handleTagKeydown(event)">
+        </div>
+        <div class="tag-suggestions" id="tag-suggestions"></div>
+      </div>
+      <div class="form-group">
+        <div class="form-label-row">
+          <label class="form-label form-label--required" for="card-front" style="margin-bottom:0;">Q. 質問</label>
+          <button class="voice-input-btn" id="voice-btn-front" onclick="startVoiceInput('card-front','voice-btn-front')" aria-label="音声入力">
+            <svg class="voice-icon icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="9" y="2" width="6" height="12" rx="3"/>
+              <path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/>
+              <line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>
+            音声入力
+          </button>
+        </div>
+        <textarea class="input-field textarea-field textarea-field--large"
+          id="card-front" placeholder="質問文を入力してください" maxlength="500"></textarea>
+      </div>
+      <div class="form-group">
+        <div class="form-label-row">
+          <label class="form-label form-label--required" for="card-back" style="margin-bottom:0;">A. 答え</label>
+          <button class="voice-input-btn" id="voice-btn-back" onclick="startVoiceInput('card-back','voice-btn-back')" aria-label="音声入力">
+            <svg class="voice-icon icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="9" y="2" width="6" height="12" rx="3"/>
+              <path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/>
+              <line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>
+            音声入力
+          </button>
+        </div>
+        <textarea class="input-field textarea-field"
+          id="card-back" placeholder="答えを入力してください（簡潔に）" maxlength="500"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="card-note">補足説明（任意）</label>
+        <textarea class="input-field textarea-field textarea-field--large"
+          id="card-note" placeholder="補足説明・覚え方のヒントなど" maxlength="2000"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== カード詳細・編集 オーバーレイ (SC-05) ===== -->
+  <div class="card-overlay" id="card-detail-overlay" style="display:none" aria-label="カード詳細">
+    <header class="card-overlay__header">
+      <button class="btn-icon" aria-label="閉じる" onclick="closeCardDetail()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <span class="card-overlay__title" id="detail-overlay-title">カード詳細</span>
+      <button class="btn-text" id="btn-edit-toggle" onclick="toggleEditMode()">編集</button>
+    </header>
+    <div class="card-overlay__content" id="card-detail-content"></div>
+  </div>
+
+  <!-- ===== 学習セッション オーバーレイ (SC-02) ===== -->
+  <div class="session-overlay" id="session-overlay" style="display:none" aria-label="学習セッション">
+    <header class="session-header">
+      <button class="btn-icon" aria-label="セッションを閉じる" onclick="closeSession()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <div class="session-progress-text" id="session-progress-text">— / —</div>
+      <div style="width:44px;"></div><!-- バランス用 -->
+    </header>
+    <div class="progress-bar">
+      <div class="progress-bar-fill" id="session-progress-bar" style="width:0%"></div>
+    </div>
+    <div class="session-content" id="session-content"></div>
+  </div>
+
+</div><!-- /#app -->
+
+<script>
+/* ===== 定数・設定 ===== */
+
+const STORAGE_KEY = 'srs_app_state_v1';
+
+const INITIAL_STATE = {
+  version: "1.0",
+  cards: [],
+  cardStates: [],
+  logs: [],
+  sessions: [],
+  stats: {
+    streakDays: 0,
+    lastStudyDate: null,
+    totalCards: 0,
+    totalReviews: 0,
+    retentionRate: 0
+  },
+  settings: {
+    theme: "light",
+    sessionSize: 20,
+    newCardsPerDay: 10,
+    forgottenCardDelayMin: 10
+  }
+};
+
+const CHAPTERS = [
+  { id: "basics",   name: "生成AIの基礎",       color: "success", order: 1 },
+  { id: "llm",      name: "大規模言語モデル",     color: "primary", order: 2 },
+  { id: "prompt",   name: "プロンプト技術",       color: "warning", order: 3 },
+  { id: "ethics",   name: "倫理・法律・リスク",   color: "danger",  order: 4 },
+  { id: "business", name: "業務活用",             color: "purple",  order: 5 }
+];
+
+const CHAPTER_COLORS = {
+  success: { bg: "#ECFDF5", fg: "#065F46" },
+  primary: { bg: "#EFF6FF", fg: "#1E40AF" },
+  warning: { bg: "#FEF3C7", fg: "#92400E" },
+  danger:  { bg: "#FEE2E2", fg: "#991B1B" },
+  purple:  { bg: "#F3E8FF", fg: "#6B21A8" }
+};
+
+/* ===== デフォルトカード（初回起動時にセット） ===== */
+const DEFAULT_CARDS = [
+  /* ---- basics ---- */
+  { id:"dc-001", chapter:"basics", tags:["definition","ai-basics"],
+    front:"AIとは何か？（一般的な定義）",
+    back:"人間の知能に近い人工的な知能を持ったコンピュータ",
+    note:"Artificial Intelligence の略。現段階ではAIの定義として明確に定まったものはない。",
+    createdAt:1715001000000, updatedAt:1715001000000 },
+  { id:"dc-002", chapter:"basics", tags:["history","dartmouth"],
+    front:"「AI」という用語が初めて使われた会議と年は？",
+    back:"ダートマス会議（1956年）",
+    note:"ジョン・マッカーシー、マービン・ミンスキーらが参加。第一次AIブームの出発点。",
+    createdAt:1715001001000, updatedAt:1715001001000 },
+  { id:"dc-003", chapter:"basics", tags:["ml","rule-based"],
+    front:"AIに知能をもたらす2つの仕組みは？",
+    back:"ルールベースと機械学習",
+    note:"ルールベースは人間が作ったルールに従い動作。機械学習はデータからパターンを自己学習。",
+    createdAt:1715001002000, updatedAt:1715001002000 },
+  { id:"dc-004", chapter:"basics", tags:["ml","supervised-learning"],
+    front:"教師あり学習とは？",
+    back:"正解データ（教師データ）のペアを与えてモデルをトレーニングする手法",
+    note:"例：スパムメールの分類、画像の犬猫判定など。",
+    createdAt:1715001003000, updatedAt:1715001003000 },
+  { id:"dc-005", chapter:"basics", tags:["ml","unsupervised-learning"],
+    front:"教師なし学習とは？",
+    back:"正解データを与えず、データ自体のパターンや構造をモデルが自己発見して学習する手法",
+    note:"クラスタリング・次元削減などが代表的な手法。",
+    createdAt:1715001004000, updatedAt:1715001004000 },
+  { id:"dc-006", chapter:"basics", tags:["ml","reinforcement-learning"],
+    front:"強化学習とは？",
+    back:"報酬という目標を設定し、その最大化を目指す行動をコンピュータに学習させる手法",
+    note:"ゲームAIや自動運転に広く応用されている。",
+    createdAt:1715001005000, updatedAt:1715001005000 },
+  { id:"dc-007", chapter:"basics", tags:["ml","overfitting"],
+    front:"過学習（オーバーフィッティング）とは？",
+    back:"訓練データに過度に適合しすぎて、未知データへの汎化能力が低下した状態",
+    note:"回避法：アーリーストッピング・正則化・ドロップアウト。",
+    createdAt:1715001006000, updatedAt:1715001006000 },
+  { id:"dc-008", chapter:"basics", tags:["theory"],
+    front:"ノーフリーランチ定理とは？",
+    back:"どの問題にも万能で汎用的なモデルは存在しないという定理",
+    note:"目的・データ種類・分析方法に応じた最適な手法選択が重要。",
+    createdAt:1715001007000, updatedAt:1715001007000 },
+  { id:"dc-009", chapter:"basics", tags:["agi","ani"],
+    front:"ANIとAGIの違いは？",
+    back:"ANIは特定タスクに特化したAI。AGIはすべての知的タスクに人間並みの性能を持つAI（未実現）",
+    note:"ANI例：チェスAI・音声認識。AGIは現時点では存在しない。",
+    createdAt:1715001008000, updatedAt:1715001008000 },
+  { id:"dc-010", chapter:"basics", tags:["singularity","history"],
+    front:"シンギュラリティ（技術的特異点）とは？",
+    back:"AIが人間を超越し、知能的に自己進化する状態",
+    note:"ヴァーナー・ヴィンジが提唱し、レイ・カーツワイルが2045年問題として広めた。",
+    createdAt:1715001009000, updatedAt:1715001009000 },
+  { id:"dc-011", chapter:"basics", tags:["history","deep-learning"],
+    front:"第三次AIブームの特徴は？",
+    back:"ビッグデータの活用とディープラーニング技術の発展",
+    note:"2010年代以降現在も継続。画像認識・自然言語処理の精度が大幅向上。",
+    createdAt:1715001010000, updatedAt:1715001010000 },
+  { id:"dc-012", chapter:"basics", tags:["deep-learning","neural-network"],
+    front:"ディープラーニング（深層学習）とは？",
+    back:"ニューラルネットワークを多層に重ねた学習手法",
+    note:"人間の脳の情報処理を模倣。画像・音声・テキスト処理で高精度を実現。",
+    createdAt:1715001011000, updatedAt:1715001011000 },
+
+  /* ---- llm ---- */
+  { id:"dc-013", chapter:"llm", tags:["gan","generative-model"],
+    front:"GAN（敵対的生成ネットワーク）の2つの構成要素は？",
+    back:"生成器（Generator）と識別器（Discriminator）",
+    note:"生成器は本物そっくりのデータを生成し、識別器はそれを見分けようとする競合構造。",
+    createdAt:1715001012000, updatedAt:1715001012000 },
+  { id:"dc-014", chapter:"llm", tags:["vae","generative-model"],
+    front:"VAE（変分自己符号化器）の2つの主要な部分は？",
+    back:"エンコーダ（圧縮・潜在ベクトル化）とデコーダ（復元・生成）",
+    note:"データ特徴学習・次元削減・異常検知などに活用。",
+    createdAt:1715001013000, updatedAt:1715001013000 },
+  { id:"dc-015", chapter:"llm", tags:["transformer","attention"],
+    front:"Transformerモデルの核心となる、並列処理を可能にする仕組みは？",
+    back:"自己注意力（Self-Attention）機構",
+    note:"系列内のすべての要素間の関係を一度に計算。RNNの逐次処理が不要になる。",
+    createdAt:1715001014000, updatedAt:1715001014000 },
+  { id:"dc-016", chapter:"llm", tags:["bert","transformer"],
+    front:"BERTモデルを開発した企業と発表年月は？",
+    back:"Google（2018年10月）",
+    note:"双方向性が重要な特性。前後の文脈を両方向から捉えて単語の意味を判断する。",
+    createdAt:1715001015000, updatedAt:1715001015000 },
+  { id:"dc-017", chapter:"llm", tags:["gpt","parameter"],
+    front:"GPT-3のパラメータ数は？",
+    back:"約1,750億",
+    note:"GPT-1（約1.17億）→GPT-2（約15億）→GPT-3（約1,750億）と急増。",
+    createdAt:1715001016000, updatedAt:1715001016000 },
+  { id:"dc-018", chapter:"llm", tags:["hallucination"],
+    front:"ハルシネーション（Hallucination）とは？",
+    back:"AIが不正確・誤った情報をあたかも正確な情報のように生成すること",
+    note:"「幻覚」の意。GPT-4ではGPT-3.5比で19〜29%程度減少。",
+    createdAt:1715001017000, updatedAt:1715001017000 },
+  { id:"dc-019", chapter:"llm", tags:["multimodal","gpt-4o"],
+    front:"マルチモーダルとは？",
+    back:"テキスト・画像・音声・動画など異なる種類のデータを一度に処理できるAI技術",
+    note:"GPT-4oはさらにオムニモーダルと呼ばれ、すべてのモーダルを統合処理する。",
+    createdAt:1715001018000, updatedAt:1715001018000 },
+  { id:"dc-020", chapter:"llm", tags:["rlhf","chatgpt"],
+    front:"RLHFの正式名称は？",
+    back:"Reinforcement Learning from Human Feedback（人間のフィードバックによる強化学習）",
+    note:"ChatGPT（GPT-3.5）の安全性・有用性向上に用いられた手法。",
+    createdAt:1715001019000, updatedAt:1715001019000 },
+  { id:"dc-021", chapter:"llm", tags:["chatgpt","history"],
+    front:"ChatGPTが公開された年月は？",
+    back:"2022年11月",
+    note:"GPT-3.5ベース。公開後わずか2ヶ月でユーザー数1億人を突破。",
+    createdAt:1715001020000, updatedAt:1715001020000 },
+  { id:"dc-022", chapter:"llm", tags:["tokenization"],
+    front:"LLMがテキストを処理する最小単位は？",
+    back:"トークン（Token）",
+    note:"単語より小さい単位で分割。日本語は1文字が2〜3トークンになることが多い。",
+    createdAt:1715001021000, updatedAt:1715001021000 },
+  { id:"dc-023", chapter:"llm", tags:["gpt","reasoning"],
+    front:"GPT-o1の設計上の特徴は？",
+    back:"応答速度より推論の質を重視するリーズニングモデル（先に熟考してから回答）",
+    note:"数学・コード設計など論理性の高い課題で安定した精度を発揮。",
+    createdAt:1715001022000, updatedAt:1715001022000 },
+  { id:"dc-024", chapter:"llm", tags:["sora","video-generation"],
+    front:"Soraとは？",
+    back:"OpenAIが2024年2月発表した動画生成AI（製品版は最長20秒の動画を生成）",
+    note:"文章や画像を入力すると動画を生成。教材・広告制作などへの活用が広がる。",
+    createdAt:1715001023000, updatedAt:1715001023000 },
+
+  /* ---- prompt ---- */
+  { id:"dc-025", chapter:"prompt", tags:["prompt-engineering"],
+    front:"プロンプトとは？",
+    back:"ユーザーの要求をモデルに伝えるための入力文（指示や質問）",
+    note:"LLMに対してどのように指示するかを設計する技術をプロンプトエンジニアリングという。",
+    createdAt:1715001024000, updatedAt:1715001024000 },
+  { id:"dc-026", chapter:"prompt", tags:["zero-shot"],
+    front:"Zero-Shotプロンプティングとは？",
+    back:"例示（Shot）なしで質問を入力するプロンプティング手法",
+    note:"簡単な質問に適する。タスクが複雑になるとハルシネーションリスクが高まる。",
+    createdAt:1715001025000, updatedAt:1715001025000 },
+  { id:"dc-027", chapter:"prompt", tags:["few-shot"],
+    front:"Few-Shotプロンプティングとは？",
+    back:"例示（Shot）を2〜3個入力して質問することで望ましい回答を得るプロンプティング",
+    note:"例示があることでモデルが期待する出力形式を理解しやすくなる。",
+    createdAt:1715001026000, updatedAt:1715001026000 },
+  { id:"dc-028", chapter:"prompt", tags:["prompt-engineering"],
+    front:"プロンプトの4要素は？",
+    back:"Instruction（命令）・Context（文脈）・Input Data（入力データ）・Output Indicator（出力指示）",
+    note:"これらを意識して入力することで出力の質が向上する。",
+    createdAt:1715001027000, updatedAt:1715001027000 },
+  { id:"dc-029", chapter:"prompt", tags:["temperature","llm-params"],
+    front:"LLMのTemperatureパラメータの役割は？",
+    back:"生成テキストの「自由度」を調整する（0〜1。高いほど多様で予測困難な出力）",
+    note:"創作系タスクは高め（1.0）、定型・正確さが必要なタスクは低め（0.2）が適切。",
+    createdAt:1715001028000, updatedAt:1715001028000 },
+  { id:"dc-030", chapter:"prompt", tags:["top-p","llm-params"],
+    front:"LLMのTop-pパラメータの役割は？",
+    back:"次の単語の選択候補を確率の上位何%に限定するかを決定するパラメータ（0〜1）",
+    note:"0.9なら上位90%の単語候補の中から選択。低いほど予測可能な出力になる。",
+    createdAt:1715001029000, updatedAt:1715001029000 },
+  { id:"dc-031", chapter:"prompt", tags:["rag"],
+    front:"RAGとは？（正式名称と概要）",
+    back:"Retrieval-Augmented Generation。外部情報を検索し、その根拠に基づいてLLMが回答を生成する手法",
+    note:"事前学習だけに依存せず最新情報を取り込める。回答末尾に出典が挿入されハルシネーション抑制にも有効。",
+    createdAt:1715001030000, updatedAt:1715001030000 },
+  { id:"dc-032", chapter:"prompt", tags:["rag","chunk"],
+    front:"RAGにおけるチャンクとは？",
+    back:"索引や検索にかけやすいように文書を小さく分割した単位",
+    note:"長すぎるとノイズ混入、短すぎると文脈欠如。適度なオーバーラップを持たせるのが一般的。",
+    createdAt:1715001031000, updatedAt:1715001031000 },
+  { id:"dc-033", chapter:"prompt", tags:["fine-tuning","pre-training"],
+    front:"プレトレーニングとファインチューニングの違いは？",
+    back:"プレトレーニングは大量データで汎用的な自然言語知識を教師なし学習。ファインチューニングは特定タスク向けに微調整。",
+    note:"LLMは2段階のトレーニングにより高精度を実現する。",
+    createdAt:1715001032000, updatedAt:1715001032000 },
+  { id:"dc-034", chapter:"prompt", tags:["cot"],
+    front:"Chain of Thought（CoT）とは？",
+    back:"「ステップバイステップで考えて」と指示し、推論過程を明示させるプロンプティング手法",
+    note:"複雑な問題の正答率向上に有効。",
+    createdAt:1715001033000, updatedAt:1715001033000 },
+
+  /* ---- ethics ---- */
+  { id:"dc-035", chapter:"ethics", tags:["privacy","personal-info"],
+    front:"個人情報保護法における「個人情報」の定義は？",
+    back:"生存する個人に関する情報で、氏名・生年月日等により特定の個人を識別できるもの",
+    note:"個人識別符号（顔認証・指紋・マイナンバー等）が含まれるものも該当。死者は含まない。",
+    createdAt:1715001034000, updatedAt:1715001034000 },
+  { id:"dc-036", chapter:"ethics", tags:["privacy","sensitive-info"],
+    front:"要配慮個人情報の例を3つ挙げよ",
+    back:"人種・病歴・犯罪の経歴",
+    note:"信条・社会的身分・犯罪被害事実なども含む。取得には原則として事前の本人同意が必要。",
+    createdAt:1715001035000, updatedAt:1715001035000 },
+  { id:"dc-037", chapter:"ethics", tags:["privacy","sensitive-info"],
+    front:"機微（センシティブ）情報と要配慮個人情報の関係は？",
+    back:"機微情報は金融分野ガイドラインの概念で、要配慮個人情報より広い概念",
+    note:"政治的見解・宗教・労働組合・性生活・健康状態などを含む。個人情報保護法ではなく金融ガイドラインで定義。",
+    createdAt:1715001036000, updatedAt:1715001036000 },
+  { id:"dc-038", chapter:"ethics", tags:["copyright"],
+    front:"著作権の発生に必要な手続きは？",
+    back:"不要（著作者に自動的に付与）",
+    note:"著作物を創作した瞬間に発生。個人の著作物は死後70年間保護される。",
+    createdAt:1715001037000, updatedAt:1715001037000 },
+  { id:"dc-039", chapter:"ethics", tags:["copyright","duration"],
+    front:"個人が創作した著作物の保護期間は？",
+    back:"著作者の死後70年間",
+    note:"法人等の著作物は公表後70年間。",
+    createdAt:1715001038000, updatedAt:1715001038000 },
+  { id:"dc-040", chapter:"ethics", tags:["patent","duration"],
+    front:"特許権の保護期間は？",
+    back:"出願日から原則20年",
+    note:"特許庁への出願・設定登録が必要（著作権と異なり手続き必要）。",
+    createdAt:1715001039000, updatedAt:1715001039000 },
+  { id:"dc-041", chapter:"ethics", tags:["portrait-right"],
+    front:"肖像権の法的根拠は？",
+    back:"日本国憲法第13条の幸福追求権（法律上の明文規定はない）",
+    note:"自分の顔・姿を自由に管理し、他人に無断使用・公表されない権利。",
+    createdAt:1715001040000, updatedAt:1715001040000 },
+  { id:"dc-042", chapter:"ethics", tags:["publicity-right"],
+    front:"パブリシティ権とは？",
+    back:"著名人が氏名や肖像から得られる経済的価値を排他的に利用する権利",
+    note:"芸能人・スポーツ選手等の顧客誘引力を他人が無断で商業利用することを禁じる。",
+    createdAt:1715001041000, updatedAt:1715001041000 },
+  { id:"dc-043", chapter:"ethics", tags:["trade-secret"],
+    front:"不正競争防止法で保護される営業秘密の3要件は？",
+    back:"秘密管理性・有用性・非公知性",
+    note:"AI生成物でもこの3要件を満たせば営業秘密として保護される。",
+    createdAt:1715001042000, updatedAt:1715001042000 },
+  { id:"dc-044", chapter:"ethics", tags:["security","malware"],
+    front:"ランサムウェアとは？",
+    back:"感染したコンピュータのデータを暗号化し、復号のための身代金を要求するマルウェア",
+    note:"身代金を払ってもデータが復元される保証はなく、さらに高額要求される可能性もある。",
+    createdAt:1715001043000, updatedAt:1715001043000 },
+  { id:"dc-045", chapter:"ethics", tags:["deepfake"],
+    front:"ディープフェイクとは？",
+    back:"ディープラーニングを利用して、極めてリアルな偽の画像・映像を生成する技術",
+    note:"偽情報（ディスインフォメーション）の拡散など社会的問題を引き起こしている。",
+    createdAt:1715001044000, updatedAt:1715001044000 },
+  { id:"dc-046", chapter:"ethics", tags:["ai-ethics","guideline"],
+    front:"AI事業者ガイドラインが定める3つの基本理念は？",
+    back:"人間の尊厳が尊重される社会（Dignity）・多様な背景を持つ人々が幸せを追求できる社会（Diversity & Inclusion）・持続可能な社会（Sustainability）",
+    note:"経済産業省・総務省が公表。2025年3月にv1.1へ更新。",
+    createdAt:1715001045000, updatedAt:1715001045000 },
+  { id:"dc-047", chapter:"ethics", tags:["ai-ethics","guideline"],
+    front:"AI事業者ガイドライン「共通の指針」は何項目か？",
+    back:"10項目",
+    note:"人間中心・安全性・公平性・プライバシー保護・セキュリティ確保・透明性・アカウンタビリティ・教育リテラシー・公正競争確保・イノベーション。",
+    createdAt:1715001046000, updatedAt:1715001046000 },
+  { id:"dc-048", chapter:"ethics", tags:["ai-law"],
+    front:"AI新法の正式名称は？",
+    back:"人工知能関連技術の研究開発及び活用の推進に関する法律",
+    note:"2025年6月4日公布。日本初のAI分野の法律。罰則規定なし、企業の自主性を重視。",
+    createdAt:1715001047000, updatedAt:1715001047000 },
+  { id:"dc-049", chapter:"ethics", tags:["ai-law"],
+    front:"AI新法とAI事業者ガイドラインの違いは？",
+    back:"AI新法は法律（推進と体制整備の枠組み）。AI事業者ガイドラインは法的拘束力のない任意指針。",
+    note:"AI新法は罰則なし。ガイドラインは自律的実装の手引き。",
+    createdAt:1715001048000, updatedAt:1715001048000 },
+  { id:"dc-050", chapter:"ethics", tags:["security","social-engineering"],
+    front:"ソーシャルエンジニアリング攻撃とは？",
+    back:"人間の心理的・感情的な隙を突いて、個人情報や重要データを盗み出す手法",
+    note:"スピアフィッシング・ベイト攻撃・ブラックメール・プレテキストなどが代表例。",
+    createdAt:1715001049000, updatedAt:1715001049000 },
+
+  /* ---- business ---- */
+  { id:"dc-051", chapter:"business", tags:["llm","definition"],
+    front:"LLMとは何の略か？",
+    back:"Large Language Model（大規模言語モデル）",
+    note:"数億以上のパラメータを持ち、自然言語生成・翻訳・要約などを高精度で実行。",
+    createdAt:1715001050000, updatedAt:1715001050000 },
+  { id:"dc-052", chapter:"business", tags:["use-case","text-generation"],
+    front:"テキスト生成AIのビジネス活用例を3つ挙げよ",
+    back:"メール作成・外国語翻訳・文章の要約",
+    note:"他にもアンケート分析・キャッチコピー作成・業務手順の分解・ブレインストーミング等。",
+    createdAt:1715001051000, updatedAt:1715001051000 },
+  { id:"dc-053", chapter:"business", tags:["limitation","text-generation"],
+    front:"テキスト生成AIが不得意な作業は？（代表例）",
+    back:"正確な文字数指定・複雑な計算・最新情報の出力・芸術の批評",
+    note:"GPT-3.5は特に正確な文字数指定と複雑な計算が不得意。",
+    createdAt:1715001052000, updatedAt:1715001052000 },
+  { id:"dc-054", chapter:"business", tags:["ai-agent"],
+    front:"AIエージェントの処理サイクルは？",
+    back:"状況把握→計画→行動→結果評価",
+    note:"目標を指示するだけで自律的にタスクを分解・実行。単純なチャットボットとは異なる。",
+    createdAt:1715001053000, updatedAt:1715001053000 },
+  { id:"dc-055", chapter:"business", tags:["mcp","ai-agent"],
+    front:"MCP（Model Context Protocol）とは？",
+    back:"AIと外部ツール・データソースを安全かつ一貫して接続する共通プロトコル",
+    note:"MCPを使うことでClaude・Gemini等が検索や更新などの外部処理を対話の流れのまま自律的に取り込める。",
+    createdAt:1715001054000, updatedAt:1715001054000 },
+  { id:"dc-056", chapter:"business", tags:["rag","use-case"],
+    front:"RAGの業務活用例は？",
+    back:"社内FAQ検索・コールセンターでの手順案内・教育での根拠付き解説",
+    note:"製造現場の保全ナレッジ横断検索などにも活用。回答に出典が付くためハルシネーション抑制に効果的。",
+    createdAt:1715001055000, updatedAt:1715001055000 },
+  { id:"dc-057", chapter:"business", tags:["adoption"],
+    front:"業務に生成AIを導入する際、最初に検討すべきことは？",
+    back:"ユースケースの明確化（解決したい業務課題の特定）",
+    note:"ツール選定より先に「何を解決するか」を定義することが重要。",
+    createdAt:1715001056000, updatedAt:1715001056000 },
+  { id:"dc-058", chapter:"business", tags:["api","pricing"],
+    front:"生成AI APIで一般的な、使用量に応じた課金体系を何と呼ぶか？",
+    back:"従量課金（Pay-as-you-go）",
+    note:"トークン数や呼び出し回数に応じて課金される。",
+    createdAt:1715001057000, updatedAt:1715001057000 }
+];
+
+/* ===== グローバル状態 ===== */
+let state = null;
+
+/* ===== localStorage ラッパー ===== */
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      const s = structuredClone(INITIAL_STATE);
+      s.cards = DEFAULT_CARDS.map(c => ({ ...c }));
+      s.cardStates = DEFAULT_CARDS.map(c => ({
+        cardId: c.id, ef: 2.5, interval: 0, reps: 0,
+        nextReviewAt: c.createdAt, lastReviewedAt: null
+      }));
+      s.stats.totalCards = DEFAULT_CARDS.length;
+      return s;
+    }
+    const parsed = JSON.parse(raw);
+    if (parsed.version !== "1.0") return migrate(parsed);
+    return parsed;
+  } catch (e) {
+    console.error('Failed to load state:', e);
+    return structuredClone(INITIAL_STATE);
+  }
+}
+
+function saveState(s) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s || state));
+    return true;
+  } catch (e) {
+    console.error('Failed to save state:', e);
+    showToast('保存に失敗しました', 'error');
+    return false;
+  }
+}
+
+function migrate(oldState) {
+  return oldState;
+}
+
+/* ===== SRS アルゴリズム ===== */
+
+function reviewCard(cardState, rating) {
+  const now = Date.now();
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const MIN_DELAY_MS = 10 * 60 * 1000;
+
+  const s = { ...cardState, lastReviewedAt: now };
+
+  if (rating === 0) {
+    s.ef = Math.max(1.3, cardState.ef - 0.20);
+    s.reps = 0;
+    s.interval = 0;
+    s.nextReviewAt = now + MIN_DELAY_MS;
+  } else if (rating === 1) {
+    if (cardState.reps === 0)      s.interval = 1;
+    else if (cardState.reps === 1) s.interval = 3;
+    else                           s.interval = Math.round(cardState.interval * cardState.ef);
+    s.reps = cardState.reps + 1;
+    s.nextReviewAt = now + s.interval * DAY_MS;
+  } else if (rating === 2) {
+    s.ef = Math.min(2.8, cardState.ef + 0.10);
+    if (cardState.reps === 0)      s.interval = 3;
+    else if (cardState.reps === 1) s.interval = 7;
+    else                           s.interval = Math.round(cardState.interval * cardState.ef * 1.3);
+    s.reps = cardState.reps + 1;
+    s.nextReviewAt = now + s.interval * DAY_MS;
+  }
+
+  return s;
+}
+
+function calculateInterval(cardState, rating) {
+  if (rating === 1) {
+    if (cardState.reps === 0) return 1;
+    if (cardState.reps === 1) return 3;
+    return Math.round(cardState.interval * cardState.ef);
+  }
+  if (rating === 2) {
+    if (cardState.reps === 0) return 3;
+    if (cardState.reps === 1) return 7;
+    return Math.round(cardState.interval * (cardState.ef + 0.10) * 1.3);
+  }
+  return 0;
+}
+
+function previewIntervals(cardState) {
+  return {
+    forgotten: "10分後",
+    normal: formatInterval(calculateInterval(cardState, 1)),
+    easy:   formatInterval(calculateInterval(cardState, 2))
+  };
+}
+
+function formatInterval(days) {
+  if (days < 1)  return "10分後";
+  if (days === 1) return "1日後";
+  if (days < 7)  return `${days}日後`;
+  if (days < 30) return `${Math.round(days / 7)}週間後`;
+  return `${Math.round(days / 30)}ヶ月後`;
+}
+
+function getCardStatus(cs) {
+  if (cs.reps === 0 && cs.lastReviewedAt === null) return "new";
+  if (cs.reps >= 3 && cs.ef >= 2.5) return "mastered";
+  return "learning";
+}
+
+function isOverdue(cs) {
+  return cs.nextReviewAt < Date.now() && cs.reps > 0;
+}
+
+function selectSessionCards(st, sessionSize, newCardsPerDay) {
+  sessionSize   = sessionSize   || st.settings.sessionSize;
+  newCardsPerDay = newCardsPerDay || st.settings.newCardsPerDay;
+  const now = Date.now();
+  const todayStart    = new Date().setHours(0, 0, 0, 0);
+  const tomorrowStart = todayStart + 24 * 60 * 60 * 1000;
+
+  const overdue = st.cardStates
+    .filter(cs => cs.nextReviewAt < todayStart && cs.reps > 0)
+    .sort((a, b) => a.nextReviewAt - b.nextReviewAt);
+
+  const dueToday = st.cardStates
+    .filter(cs => cs.nextReviewAt >= todayStart && cs.nextReviewAt < tomorrowStart);
+
+  const reviewedToday = countReviewedToday(st);
+  const newSlots = Math.max(0, newCardsPerDay - reviewedToday);
+  const newCards = st.cardStates
+    .filter(cs => cs.reps === 0 && cs.lastReviewedAt === null)
+    .slice(0, newSlots);
+
+  return [...overdue, ...dueToday, ...newCards].slice(0, sessionSize);
+}
+
+function countReviewedToday(st) {
+  const todayStart = new Date().setHours(0, 0, 0, 0);
+  return st.logs.filter(l => l.reviewedAt >= todayStart).length;
+}
+
+function calculateRetentionRate(logs) {
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const recent = logs.filter(l => l.reviewedAt >= cutoff);
+  if (recent.length === 0) return 0;
+  return recent.filter(l => l.rating >= 1).length / recent.length;
+}
+
+function updateStreak(stats, todayDate) {
+  const today = todayDate || new Date().toISOString().split('T')[0];
+  if (stats.lastStudyDate === today) return stats;
+  if (!stats.lastStudyDate) return { ...stats, streakDays: 1, lastStudyDate: today };
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  if (stats.lastStudyDate === yesterday)
+    return { ...stats, streakDays: stats.streakDays + 1, lastStudyDate: today };
+  return { ...stats, streakDays: 1, lastStudyDate: today };
+}
+
+/* ===== ユーティリティ ===== */
+
+function generateId() {
+  if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function formatDate(d) {
+  const dt = d instanceof Date ? d : new Date(d);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+
+function formatNextReview(cs) {
+  if (!cs.lastReviewedAt && cs.reps === 0) return "未学習";
+  if (isOverdue(cs)) {
+    const days = Math.floor((Date.now() - cs.nextReviewAt) / (24*60*60*1000));
+    return `期限超過 ${days}日`;
+  }
+  const diff = cs.nextReviewAt - Date.now();
+  const days = Math.ceil(diff / (24*60*60*1000));
+  if (days <= 0) return "今日";
+  if (days === 1) return "明日";
+  return `${days}日後`;
+}
+
+function getChapterTagStyle(chapterId) {
+  const ch = CHAPTERS.find(c => c.id === chapterId);
+  if (!ch) return { bg: "#F3F4F6", fg: "#6B7280" };
+  return CHAPTER_COLORS[ch.color] || { bg: "#F3F4F6", fg: "#6B7280" };
+}
+
+function getChapterName(chapterId) {
+  const ch = CHAPTERS.find(c => c.id === chapterId);
+  return ch ? ch.name : chapterId;
+}
+
+function getCardDotClass(cs) {
+  if (isOverdue(cs)) return "dot--overdue";
+  const status = getCardStatus(cs);
+  return status === "new" ? "dot--new"
+       : status === "mastered" ? "dot--mastered"
+       : "dot--learning";
+}
+
+function getWeeklyReviewCounts(logs) {
+  const counts = [];
+  const now = Date.now();
+  for (let i = 6; i >= 0; i--) {
+    const dayStart = new Date(now - i * 24*60*60*1000).setHours(0,0,0,0);
+    const dayEnd   = dayStart + 24*60*60*1000;
+    counts.push(logs.filter(l => l.reviewedAt >= dayStart && l.reviewedAt < dayEnd).length);
+  }
+  return counts;
+}
+
+/* ===== トースト ===== */
+
+let toastCount = 0;
+
+function showToast(message, type) {
+  if (toastCount >= 3) return;
+  toastCount++;
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (type ? ' toast-' + type : '');
+  toast.textContent = message;
+  toast.onclick = () => removeToast(toast);
+  container.appendChild(toast);
+
+  setTimeout(() => removeToast(toast), 3000);
+}
+
+function removeToast(el) {
+  if (!el.parentNode) return;
+  el.parentNode.removeChild(el);
+  toastCount = Math.max(0, toastCount - 1);
+}
+
+/* ===== ナビゲーション ===== */
+
+function navigateTo(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === viewName);
+  });
+  const view = document.getElementById('view-' + viewName);
+  if (view) {
+    view.classList.add('active');
+    renderView(viewName);
+  }
+  state.currentView = viewName;
+}
+
+function renderView(viewName) {
+  if (viewName === 'home')    renderHome();
+  if (viewName === 'cards')   renderCards();
+  if (viewName === 'profile') renderProfile();
+}
+
+/* ===== Home 画面レンダー ===== */
+
+function renderHome() {
+  const now = Date.now();
+  const todayStart    = new Date().setHours(0,0,0,0);
+  const tomorrowStart = todayStart + 24*60*60*1000;
+  const dayAfterStart = tomorrowStart + 24*60*60*1000;
+
+  const overdueCards  = state.cardStates.filter(cs => cs.nextReviewAt < todayStart && cs.reps > 0);
+  const todayCards    = state.cardStates.filter(cs => cs.nextReviewAt >= todayStart && cs.nextReviewAt < tomorrowStart);
+  const tomorrowCards = state.cardStates.filter(cs => cs.nextReviewAt >= tomorrowStart && cs.nextReviewAt < dayAfterStart);
+  const newCards      = state.cardStates.filter(cs => cs.reps === 0 && cs.lastReviewedAt === null);
+
+  const todayTotal = overdueCards.length + todayCards.length + Math.min(newCards.length, state.settings.newCardsPerDay);
+
+  document.getElementById('hero-count').textContent = todayTotal;
+
+  const subtitle = todayTotal === 0
+    ? '今日の復習はありません'
+    : overdueCards.length > 0
+      ? `期限超過 ${overdueCards.length}枚 含む`
+      : '今日の分を学習しましょう';
+  document.getElementById('hero-subtitle').textContent = subtitle;
+
+  document.getElementById('count-overdue').textContent  = overdueCards.length;
+  document.getElementById('count-today').textContent    = todayCards.length + newCards.slice(0, state.settings.newCardsPerDay).length;
+  document.getElementById('count-tomorrow').textContent = tomorrowCards.length;
+
+  const retention = Math.round(calculateRetentionRate(state.logs) * 100);
+  document.getElementById('stat-streak').textContent    = state.stats.streakDays;
+  document.getElementById('stat-retention').textContent = retention;
+
+  renderWeeklyGraph();
+}
+
+function renderWeeklyGraph() {
+  const container = document.getElementById('weekly-graph');
+  const counts = getWeeklyReviewCounts(state.logs);
+  const maxVal = Math.max(...counts, 1);
+  const dayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+  const todayIdx = new Date().getDay();
+
+  container.innerHTML = '';
+  counts.forEach((cnt, i) => {
+    const relDay = (todayIdx - (6 - i) + 7) % 7;
+    const label = i === 6 ? '今日' : dayLabels[relDay];
+    const heightPct = Math.max((cnt / maxVal) * 100, 5);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'graph-bar-wrap';
+
+    const bar = document.createElement('div');
+    bar.className = 'graph-bar' + (i === 6 ? ' graph-bar--today' : '');
+    bar.style.height = heightPct + '%';
+    bar.title = `${cnt}枚`;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'graph-day-label';
+    lbl.textContent = label;
+
+    wrap.appendChild(bar);
+    wrap.appendChild(lbl);
+    container.appendChild(wrap);
+  });
+}
+
+/* ===== Cards 画面レンダー ===== */
+
+let currentChapterFilter = 'all';
+
+function renderCards() {
+  const { cards, cardStates } = state;
+
+  const csMap = {};
+  cardStates.forEach(cs => { csMap[cs.cardId] = cs; });
+
+  const allCount      = cards.length;
+  const newCount      = cardStates.filter(cs => getCardStatus(cs) === 'new').length;
+  const learningCount = cardStates.filter(cs => getCardStatus(cs) === 'learning').length;
+  const masteredCount = cardStates.filter(cs => getCardStatus(cs) === 'mastered').length;
+
+  document.getElementById('summary-total').textContent   = allCount;
+  document.getElementById('summary-new').textContent     = newCount;
+  document.getElementById('summary-learning').textContent= learningCount;
+  document.getElementById('summary-mastered').textContent= masteredCount;
+
+  renderChapterFilterChips();
+
+  let filtered = currentChapterFilter === 'all'
+    ? cards
+    : cards.filter(c => c.chapter === currentChapterFilter);
+
+  if (searchActive && searchQuery) {
+    filtered = searchCards(filtered, searchQuery);
+    const countEl = document.getElementById('search-result-count');
+    if (countEl) countEl.textContent = `${filtered.length} 件見つかりました`;
+  }
+
+  const container = document.getElementById('card-list-container');
+
+  if (filtered.length === 0) {
+    const msg = searchActive && searchQuery
+      ? { icon: '🔍', title: '検索結果がありません', desc: `「${searchQuery}」に一致するカードが見つかりませんでした` }
+      : { icon: '📚', title: 'カードがありません', desc: '右下の＋ボタンでカードを作成しましょう' };
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state__icon">${msg.icon}</div>
+        <div class="empty-state__title">${msg.title}</div>
+        <div class="empty-state__desc">${escapeHtml(msg.desc)}</div>
+      </div>`;
+    return;
+  }
+
+  const listEl = document.createElement('div');
+  listEl.className = 'card-list';
+
+  filtered.forEach(card => {
+    const cs = csMap[card.id];
+    if (!cs) return;
+
+    const dotClass  = getCardDotClass(cs);
+    const nextStr   = formatNextReview(cs);
+    const chStyle   = getChapterTagStyle(card.chapter);
+    const chName    = getChapterName(card.chapter);
+
+    const item = document.createElement('div');
+    item.className = 'card-item';
+    item.onclick = () => showCardDetail(card.id);
+    item.innerHTML = `
+      <span class="card-item__status-dot ${dotClass}"></span>
+      <div class="card-item__body">
+        <div class="card-item__front">${escapeHtml(card.front)}</div>
+        <div class="card-item__meta">
+          <span class="tag" style="background:${chStyle.bg};color:${chStyle.fg};">${escapeHtml(chName)}</span>
+          <span class="card-item__next-review">${nextStr}</span>
+        </div>
+      </div>
+      <svg class="icon card-item__arrow" width="16" height="16"><use href="#icon-chevron-right"/></svg>`;
+
+    listEl.appendChild(item);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(listEl);
+}
+
+function renderChapterFilterChips() {
+  const container = document.getElementById('chapter-filter-chips');
+  container.innerHTML = '';
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'chip ' + (currentChapterFilter === 'all' ? 'chip-active' : 'chip-default');
+  allBtn.textContent = 'すべて';
+  allBtn.onclick = () => { currentChapterFilter = 'all'; renderCards(); };
+  container.appendChild(allBtn);
+
+  CHAPTERS.forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className = 'chip ' + (currentChapterFilter === ch.id ? 'chip-active' : 'chip-default');
+    btn.textContent = ch.name;
+    btn.onclick = () => { currentChapterFilter = ch.id; renderCards(); };
+    container.appendChild(btn);
+  });
+}
+
+/* ===== 章別進捗 ===== */
+
+function getChapterProgress(chapterId) {
+  const chapterCards = state.cards.filter(c => c.chapter === chapterId);
+  const ids = new Set(chapterCards.map(c => c.id));
+  const states = state.cardStates.filter(cs => ids.has(cs.cardId));
+  const masteredCount = states.filter(s => getCardStatus(s) === 'mastered').length;
+  const learningCount = states.filter(s => getCardStatus(s) === 'learning').length;
+  const newCount      = states.filter(s => getCardStatus(s) === 'new').length;
+  return {
+    total: chapterCards.length,
+    new: newCount,
+    learning: learningCount,
+    mastered: masteredCount,
+    masteryRate: states.length > 0 ? masteredCount / states.length : 0
+  };
+}
+
+function getMonthlyReviewCounts(logs) {
+  const counts = [];
+  const now = Date.now();
+  for (let i = 27; i >= 0; i--) {
+    const dayStart = new Date(now - i * 24*60*60*1000).setHours(0,0,0,0);
+    const dayEnd   = dayStart + 24*60*60*1000;
+    counts.push(logs.filter(l => l.reviewedAt >= dayStart && l.reviewedAt < dayEnd).length);
+  }
+  return counts;
+}
+
+/* ===== Profile 画面レンダー ===== */
+
+function renderProfile() {
+  const retention    = Math.round(calculateRetentionRate(state.logs) * 100);
+  const totalCards   = state.cards.length;
+  const totalReviews = state.stats.totalReviews;
+  const streak       = state.stats.streakDays;
+
+  const masteredAll  = state.cardStates.filter(cs => getCardStatus(cs) === 'mastered').length;
+
+  const container = document.getElementById('profile-content');
+
+  /* ---- ヒーロー統計グリッド ---- */
+  const heroHtml = `
+    <div class="profile-hero-grid">
+      <div class="profile-hero-card profile-hero-card--primary">
+        <div class="profile-hero-card__label">連続学習</div>
+        <div class="profile-hero-card__value">${streak}<span class="profile-hero-card__unit">日</span></div>
+      </div>
+      <div class="profile-hero-card">
+        <div class="profile-hero-card__label">記憶定着率</div>
+        <div class="profile-hero-card__value" style="color:var(--color-success);">${retention}<span class="profile-hero-card__unit" style="color:var(--color-text-secondary);">%</span></div>
+      </div>
+      <div class="profile-hero-card">
+        <div class="profile-hero-card__label">総カード数</div>
+        <div class="profile-hero-card__value">${totalCards}<span class="profile-hero-card__unit">枚</span></div>
+      </div>
+      <div class="profile-hero-card">
+        <div class="profile-hero-card__label">習得済み</div>
+        <div class="profile-hero-card__value" style="color:var(--color-success);">${masteredAll}<span class="profile-hero-card__unit">枚</span></div>
+      </div>
+    </div>`;
+
+  /* ---- 月次グラフ ---- */
+  const monthlyCounts = getMonthlyReviewCounts(state.logs);
+  const maxMonthly = Math.max(...monthlyCounts, 1);
+  const monthlyBarsHtml = monthlyCounts.map((cnt, i) => {
+    const pct = Math.max((cnt / maxMonthly) * 100, 2);
+    const isToday = i === monthlyCounts.length - 1;
+    return `<div class="monthly-bar-wrap">
+      <div class="monthly-bar${isToday ? ' monthly-bar--today' : ''}"
+        style="height:${pct}%;" title="${cnt}枚"></div>
+    </div>`;
+  }).join('');
+
+  const monthlyHtml = `
+    <div class="monthly-graph-wrap">
+      <div class="graph-card__label">過去28日間の復習枚数</div>
+      <div class="monthly-graph-bars">${monthlyBarsHtml}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;">
+        <span style="font-size:10px;color:var(--color-text-tertiary);">28日前</span>
+        <span style="font-size:10px;color:var(--color-text-tertiary);">今日</span>
+      </div>
+      <div style="text-align:center;margin-top:4px;font-size:12px;color:var(--color-text-secondary);">
+        累積 <span style="font-family:var(--font-number);font-weight:500;">${totalReviews}</span> 回
+      </div>
+    </div>`;
+
+  /* ---- 章別進捗 ---- */
+  const chapterBarColors = {
+    success: '#10B981', primary: '#3A7AFE',
+    warning: '#F59E0B', danger:  '#FF4D4F', purple: '#8B5CF6'
+  };
+
+  const chapterItemsHtml = CHAPTERS.map(ch => {
+    const prog = getChapterProgress(ch.id);
+    if (prog.total === 0) return `
+      <div class="chapter-progress-item">
+        <div class="chapter-progress-header">
+          <span class="chapter-progress-name">${escapeHtml(ch.name)}</span>
+          <span class="chapter-progress-pct" style="color:var(--color-text-tertiary);">カードなし</span>
+        </div>
+        <div class="chapter-progress-bar-bg">
+          <div class="chapter-progress-bar-fill" style="width:0%;background:${chapterBarColors[ch.color]||'#3A7AFE'};"></div>
+        </div>
+      </div>`;
+    const pct = Math.round(prog.masteryRate * 100);
+    return `
+      <div class="chapter-progress-item">
+        <div class="chapter-progress-header">
+          <span class="chapter-progress-name">${escapeHtml(ch.name)}</span>
+          <span class="chapter-progress-pct">${pct}%</span>
+        </div>
+        <div class="chapter-progress-bar-bg">
+          <div class="chapter-progress-bar-fill"
+            style="width:${pct}%;background:${chapterBarColors[ch.color]||'#3A7AFE'};"></div>
+        </div>
+        <div class="chapter-progress-counts">
+          <span><span class="count-dot" style="background:var(--color-primary);"></span>新規 ${prog.new}</span>
+          <span><span class="count-dot" style="background:var(--color-warning);"></span>学習中 ${prog.learning}</span>
+          <span><span class="count-dot" style="background:var(--color-success);"></span>習得 ${prog.mastered}</span>
+          <span style="margin-left:auto;">計 ${prog.total}枚</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  const chapterHtml = `
+    <div class="section__title" style="margin-bottom:var(--space-3);">章別進捗</div>
+    <div class="chapter-progress-list">${chapterItemsHtml}</div>`;
+
+  /* ---- データ管理 ---- */
+  const dataHtml = `
+    <div class="profile-section">
+      <div class="profile-section__header">データ管理</div>
+      <div class="profile-section__row">
+        <span class="profile-section__row-label">JSONバックアップ</span>
+        <button class="btn-text" style="padding:8px 0;" onclick="exportData()">
+          <svg class="icon" width="16" height="16" style="margin-right:4px;"><use href="#icon-download"/></svg>エクスポート
+        </button>
+      </div>
+      <div class="profile-section__row">
+        <span class="profile-section__row-label">JSONから復元</span>
+        <button class="btn-text" style="padding:8px 0;" onclick="triggerImport()">
+          <svg class="icon" width="16" height="16" style="margin-right:4px;"><use href="#icon-upload"/></svg>インポート
+        </button>
+      </div>
+      <div class="profile-section__row">
+        <span class="profile-section__row-label" style="color:var(--color-danger);">データをリセット</span>
+        <button class="btn-text" style="color:var(--color-danger);padding:8px 0;" onclick="resetData()">リセット</button>
+      </div>
+    </div>`;
+
+  /* ---- アプリ情報 ---- */
+  const infoHtml = `
+    <div class="profile-section">
+      <div class="profile-section__header">アプリ情報</div>
+      <div class="profile-section__row">
+        <span class="profile-section__row-label">バージョン</span>
+        <span style="font-size:13px;color:var(--color-text-secondary);">1.0.0</span>
+      </div>
+      <div class="profile-section__row">
+        <span class="profile-section__row-label">最終学習日</span>
+        <span style="font-size:13px;color:var(--color-text-secondary);">
+          ${state.stats.lastStudyDate || '未学習'}
+        </span>
+      </div>
+    </div>`;
+
+  container.innerHTML = heroHtml + monthlyHtml + chapterHtml + dataHtml + infoHtml
+    + '<div style="height:8px;"></div>';
+}
+
+/* ===== 学習セッション ===== */
+
+let session = {
+  queue: [],         // CardState の配列（出題順）
+  retryMap: null,    // Map<cardId, boolean> 再投入済みフラグ
+  currentIdx: 0,
+  id: null,
+  startTime: null,
+  cardStartTime: null,
+  answerShown: false,
+  ratingDist: { forgotten: 0, normal: 0, easy: 0 },
+  totalQueued: 0     // セッション開始時の枚数（完了率計算用）
+};
+
+function startSession() {
+  const cards = selectSessionCards(state);
+  if (cards.length === 0) {
+    showToast('今日の復習カードはありません');
+    return;
+  }
+
+  const overdueCount = cards.filter(cs => isOverdue(cs)).length;
+  if (overdueCount > 0) {
+    showToast(`期限超過カードが ${overdueCount} 枚あります`, 'warning');
+  }
+
+  session.queue       = [...cards];
+  session.retryMap    = new Map();
+  session.currentIdx  = 0;
+  session.id          = generateId();
+  session.startTime   = Date.now();
+  session.cardStartTime = Date.now();
+  session.answerShown = false;
+  session.ratingDist  = { forgotten: 0, normal: 0, easy: 0 };
+  session.totalQueued = cards.length;
+
+  state.sessions.push({
+    id: session.id,
+    startedAt: session.startTime,
+    endedAt: null,
+    cardCount: cards.length,
+    completedCount: 0,
+    ratingDistribution: { forgotten: 0, normal: 0, easy: 0 }
+  });
+  saveState();
+
+  document.getElementById('session-overlay').style.display = 'flex';
+  renderSessionCard();
+}
+
+function closeSession() {
+  if (session.queue.length > 0 && session.currentIdx < session.queue.length) {
+    const ok = confirm('学習を中断しますか？');
+    if (!ok) return;
+  }
+  finalizeSession();
+  document.getElementById('session-overlay').style.display = 'none';
+  renderHome();
+}
+
+function renderSessionCard() {
+  const total   = session.totalQueued;
+  const done    = session.currentIdx;
+  const pct     = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  document.getElementById('session-progress-text').textContent = `${done} / ${total}`;
+  document.getElementById('session-progress-bar').style.width  = pct + '%';
+
+  if (session.currentIdx >= session.queue.length) {
+    renderSessionComplete();
+    return;
+  }
+
+  const cs   = session.queue[session.currentIdx];
+  const card = state.cards.find(c => c.id === cs.cardId);
+  if (!card) { advanceSession(); return; }
+
+  session.answerShown  = false;
+  session.cardStartTime = Date.now();
+
+  const content = document.getElementById('session-content');
+  content.innerHTML = '';
+
+  const cardEl = document.createElement('div');
+  cardEl.className = 'study-card';
+  cardEl.id = 'study-card-el';
+  cardEl.setAttribute('role', 'button');
+  cardEl.setAttribute('tabindex', '0');
+  cardEl.setAttribute('aria-label', '答えを表示');
+  cardEl.innerHTML = `
+    <div>
+      <div class="study-card-label study-card-label-q">Q.</div>
+      <div class="study-card-front" id="card-front-text">${escapeHtml(card.front)}</div>
+    </div>
+    <div class="study-card-hint">
+      <svg class="icon" width="14" height="14"><use href="#icon-cards"/></svg>
+      タップして答えを表示
+    </div>`;
+  cardEl.onclick = showAnswer;
+  cardEl.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); showAnswer(); } };
+
+  content.appendChild(cardEl);
+
+  const ratingArea = document.createElement('div');
+  ratingArea.id = 'rating-area';
+  content.appendChild(ratingArea);
+}
+
+function showAnswer() {
+  if (session.answerShown) return;
+  session.answerShown = true;
+
+  const cs   = session.queue[session.currentIdx];
+  const card = state.cards.find(c => c.id === cs.cardId);
+  if (!card) return;
+
+  const cardEl = document.getElementById('study-card-el');
+  if (!cardEl) return;
+
+  const preview = previewIntervals(cs);
+
+  cardEl.onclick   = null;
+  cardEl.innerHTML = `
+    <div>
+      <div class="study-card-label study-card-label-q">Q.</div>
+      <div class="study-card-front study-card-front--dimmed">${escapeHtml(card.front)}</div>
+    </div>
+    <div>
+      <div class="study-card-label study-card-label-a">A.</div>
+      <div class="study-card-back">${escapeHtml(card.back)}</div>
+      ${card.note ? `<div class="study-card-note">${escapeHtml(card.note)}</div>` : ''}
+    </div>`;
+
+  const ratingArea = document.getElementById('rating-area');
+  ratingArea.innerHTML = `
+    <div class="rating-buttons">
+      <button class="rating-btn rating-btn-forgotten" onclick="rateCard(0)" aria-label="わからない">
+        <span class="rating-label">わからない</span>
+        <span class="rating-interval">${preview.forgotten}</span>
+      </button>
+      <button class="rating-btn rating-btn-normal" onclick="rateCard(1)" aria-label="普通">
+        <span class="rating-label">普通</span>
+        <span class="rating-interval">${preview.normal}</span>
+      </button>
+      <button class="rating-btn rating-btn-easy" onclick="rateCard(2)" aria-label="余裕">
+        <span class="rating-label">余裕</span>
+        <span class="rating-interval">${preview.easy}</span>
+      </button>
+    </div>`;
+}
+
+function rateCard(rating) {
+  const cs   = session.queue[session.currentIdx];
+  const card = state.cards.find(c => c.id === cs.cardId);
+  if (!card) { advanceSession(); return; }
+
+  const responseTimeMs = Date.now() - session.cardStartTime;
+
+  const newCs = reviewCard(cs, rating);
+
+  const csIdx = state.cardStates.findIndex(s => s.cardId === cs.cardId);
+  if (csIdx !== -1) state.cardStates[csIdx] = newCs;
+
+  const logEntry = {
+    id: generateId(),
+    cardId: card.id,
+    sessionId: session.id,
+    rating: rating,
+    reviewedAt: Date.now(),
+    responseTimeMs: responseTimeMs
+  };
+  state.logs.push(logEntry);
+  state.stats.totalReviews++;
+
+  if (rating === 0) {
+    session.ratingDist.forgotten++;
+    if (!session.retryMap.has(card.id)) {
+      session.retryMap.set(card.id, true);
+      session.queue.push(cs);
+    }
+  } else if (rating === 1) {
+    session.ratingDist.normal++;
+  } else {
+    session.ratingDist.easy++;
+  }
+
+  const sessIdx = state.sessions.findIndex(s => s.id === session.id);
+  if (sessIdx !== -1) {
+    state.sessions[sessIdx].completedCount++;
+    state.sessions[sessIdx].ratingDistribution = { ...session.ratingDist };
+  }
+
+  saveState();
+  advanceSession();
+}
+
+function advanceSession() {
+  session.currentIdx++;
+  renderSessionCard();
+}
+
+function renderSessionComplete() {
+  const total = session.totalQueued;
+  const { forgotten, normal, easy } = session.ratingDist;
+  const allRated = forgotten + normal + easy;
+  const retention = allRated > 0 ? Math.round((normal + easy) / allRated * 100) : 0;
+
+  finalizeSession();
+
+  const content = document.getElementById('session-content');
+  content.innerHTML = `
+    <div class="session-complete">
+      <div class="session-complete__emoji">🎉</div>
+      <div class="session-complete__title">セッション完了！</div>
+      <div class="session-complete__subtitle">${total}枚の学習が終わりました</div>
+      <div class="session-complete__stats">
+        <div class="session-complete__stat">
+          <div class="session-complete__stat-value" style="color:var(--color-danger);">${forgotten}</div>
+          <div class="session-complete__stat-label">わからない</div>
+        </div>
+        <div class="session-complete__stat">
+          <div class="session-complete__stat-value" style="color:var(--color-warning);">${normal}</div>
+          <div class="session-complete__stat-label">普通</div>
+        </div>
+        <div class="session-complete__stat">
+          <div class="session-complete__stat-value" style="color:var(--color-primary);">${easy}</div>
+          <div class="session-complete__stat-label">余裕</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="endSession()" style="max-width:280px;">
+        ホームに戻る
+      </button>
+    </div>`;
+
+  document.getElementById('session-progress-bar').style.width = '100%';
+  document.getElementById('session-progress-text').textContent = `${total} / ${total}`;
+}
+
+function finalizeSession() {
+  const sessIdx = state.sessions.findIndex(s => s.id === session.id);
+  if (sessIdx !== -1 && !state.sessions[sessIdx].endedAt) {
+    state.sessions[sessIdx].endedAt = Date.now();
+    state.sessions[sessIdx].ratingDistribution = { ...session.ratingDist };
+  }
+
+  state.stats = updateStreak(state.stats);
+  state.stats.retentionRate = calculateRetentionRate(state.logs);
+  saveState();
+}
+
+function endSession() {
+  document.getElementById('session-overlay').style.display = 'none';
+  renderHome();
+  showToast(`学習完了！連続 ${state.stats.streakDays} 日目`, 'success');
+}
+
+/* ===== カード作成 (SC-04) ===== */
+
+let editingTags = [];
+
+function showCardCreate() {
+  editingTags = [];
+
+  const sel = document.getElementById('card-chapter');
+  sel.innerHTML = CHAPTERS.map(ch =>
+    `<option value="${ch.id}">${ch.name}</option>`
+  ).join('');
+
+  document.getElementById('card-front').value = '';
+  document.getElementById('card-back').value  = '';
+  document.getElementById('card-note').value  = '';
+
+  renderTagChipsInForm();
+  renderTagSuggestions();
+
+  document.getElementById('card-create-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('card-front').focus(), 100);
+}
+
+function closeCardCreate() {
+  const hasInput = document.getElementById('card-front').value.trim()
+                || document.getElementById('card-back').value.trim();
+  if (hasInput && !confirm('入力内容を破棄してよろしいですか？')) return;
+  document.getElementById('card-create-overlay').style.display = 'none';
+}
+
+function handleTagKeydown(e) {
+  const input = e.target;
+  if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+    e.preventDefault();
+    addTag(input.value.trim());
+    input.value = '';
+    renderTagSuggestions();
+  }
+  if (e.key === 'Backspace' && input.value === '' && editingTags.length > 0) {
+    editingTags.pop();
+    renderTagChipsInForm();
+  }
+}
+
+function addTag(tag) {
+  const normalized = tag.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-　-鿿゠-ヿ぀-ゟ]/g, '');
+  if (!normalized || editingTags.includes(normalized)) return;
+  editingTags.push(normalized);
+  renderTagChipsInForm();
+}
+
+function removeTag(idx) {
+  editingTags.splice(idx, 1);
+  renderTagChipsInForm();
+}
+
+function renderTagChipsInForm() {
+  const area  = document.getElementById('tag-input-area');
+  const input = document.getElementById('tag-text-input-el');
+  area.querySelectorAll('.tag-chip').forEach(el => el.remove());
+  editingTags.forEach((t, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${escapeHtml(t)}<button class="tag-chip__remove" onclick="removeTag(${i})" aria-label="${escapeHtml(t)}を削除">×</button>`;
+    area.insertBefore(chip, input);
+  });
+}
+
+function renderTagSuggestions() {
+  const inputEl = document.getElementById('tag-text-input-el');
+  const query   = inputEl ? inputEl.value.trim().toLowerCase() : '';
+  const used    = getAllUsedTags(state.cards);
+  const filtered = used
+    .filter(t => !editingTags.includes(t) && (query === '' || t.includes(query)))
+    .slice(0, 12);
+
+  const container = document.getElementById('tag-suggestions');
+  if (!container) return;
+  container.innerHTML = '';
+  filtered.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tag-suggestion-chip';
+    btn.textContent = t;
+    btn.onclick = () => {
+      addTag(t);
+      document.getElementById('tag-text-input-el').value = '';
+      renderTagSuggestions();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function getAllUsedTags(cards) {
+  const set = new Set();
+  cards.forEach(c => c.tags.forEach(t => set.add(t)));
+  return [...set].sort();
+}
+
+function saveCard() {
+  const chapter = document.getElementById('card-chapter').value;
+  const front   = document.getElementById('card-front').value.trim();
+  const back    = document.getElementById('card-back').value.trim();
+  const note    = document.getElementById('card-note').value.trim();
+
+  if (!front) { showToast('Q.（質問）を入力してください', 'error'); return; }
+  if (!back)  { showToast('A.（答え）を入力してください', 'error'); return; }
+  if (front.length > 500) { showToast('Q.は500文字以内にしてください', 'error'); return; }
+  if (back.length  > 500) { showToast('A.は500文字以内にしてください', 'error'); return; }
+
+  const now  = Date.now();
+  const id   = generateId();
+
+  const card = { id, chapter, tags: [...editingTags], front, back, note, createdAt: now, updatedAt: now };
+  const cs   = { cardId: id, ef: 2.5, interval: 0, reps: 0, nextReviewAt: now, lastReviewedAt: null };
+
+  state.cards.push(card);
+  state.cardStates.push(cs);
+  state.stats.totalCards++;
+  saveState();
+
+  document.getElementById('card-create-overlay').style.display = 'none';
+  renderCards();
+  showToast('カードを作成しました', 'success');
+}
+
+/* ===== カード詳細・編集 (SC-05) ===== */
+
+let detailCardId   = null;
+let detailEditMode = false;
+
+function showCardDetail(cardId) {
+  detailCardId   = cardId;
+  detailEditMode = false;
+  document.getElementById('btn-edit-toggle').textContent = '編集';
+  document.getElementById('detail-overlay-title').textContent = 'カード詳細';
+  renderCardDetail();
+  document.getElementById('card-detail-overlay').style.display = 'flex';
+}
+
+function closeCardDetail() {
+  if (detailEditMode && !confirm('編集内容を破棄してよろしいですか？')) return;
+  document.getElementById('card-detail-overlay').style.display = 'none';
+  detailCardId   = null;
+  detailEditMode = false;
+}
+
+function toggleEditMode() {
+  if (detailEditMode) {
+    saveEditedCard();
+  } else {
+    detailEditMode = true;
+    document.getElementById('btn-edit-toggle').textContent = '保存';
+    document.getElementById('detail-overlay-title').textContent = 'カード編集';
+    renderCardDetail();
+  }
+}
+
+function renderCardDetail() {
+  const card = state.cards.find(c => c.id === detailCardId);
+  const cs   = state.cardStates.find(s => s.cardId === detailCardId);
+  if (!card || !cs) return;
+
+  const container = document.getElementById('card-detail-content');
+
+  if (!detailEditMode) {
+    const chStyle = getChapterTagStyle(card.chapter);
+    const chName  = getChapterName(card.chapter);
+    const status  = getCardStatus(cs);
+    const statusLabels = { new: '未学習', learning: '学習中', mastered: '習得済み' };
+    const statusColors = { new: 'var(--color-primary)', learning: 'var(--color-warning)', mastered: 'var(--color-success)' };
+
+    const tagsHtml = card.tags.length
+      ? card.tags.map(t => `<span class="tag" style="background:#F3F4F6;color:#4B5563;">${escapeHtml(t)}</span>`).join(' ')
+      : '<span style="color:var(--color-text-tertiary);font-size:12px;">タグなし</span>';
+
+    container.innerHTML = `
+      <div class="detail-meta-row">
+        <span class="tag" style="background:${chStyle.bg};color:${chStyle.fg};">${escapeHtml(chName)}</span>
+        <span style="font-size:12px;color:${statusColors[status]};font-weight:500;">${statusLabels[status] || status}</span>
+      </div>
+      <div class="detail-meta-row">${tagsHtml}</div>
+
+      <div class="detail-section">
+        <div class="detail-label detail-label-q">Q.</div>
+        <div class="detail-text">${escapeHtml(card.front)}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label detail-label-a">A.</div>
+        <div class="detail-text detail-text--answer">${escapeHtml(card.back)}</div>
+      </div>
+      ${card.note ? `
+      <div class="detail-section">
+        <div class="detail-label detail-label-note">補足説明</div>
+        <div class="detail-text detail-text--note">${escapeHtml(card.note)}</div>
+      </div>` : ''}
+
+      <div class="divider"></div>
+      <div class="detail-stat-card">
+        <span class="detail-stat-card__label">次回出題</span>
+        <span class="detail-stat-card__value">${formatNextReview(cs)}</span>
+      </div>
+      <div class="detail-stat-card">
+        <span class="detail-stat-card__label">連続成功回数</span>
+        <span class="detail-stat-card__value">${cs.reps} 回</span>
+      </div>
+      <div class="detail-stat-card">
+        <span class="detail-stat-card__label">Easiness Factor</span>
+        <span class="detail-stat-card__value">${cs.ef.toFixed(2)}</span>
+      </div>
+      <div class="detail-stat-card">
+        <span class="detail-stat-card__label">作成日</span>
+        <span class="detail-stat-card__value">${formatDate(card.createdAt)}</span>
+      </div>
+
+      <div class="divider"></div>
+      <button class="btn-danger" onclick="deleteCard('${card.id}')">
+        <svg class="icon" width="16" height="16" style="margin-right:6px;"><use href="#icon-trash"/></svg>
+        このカードを削除
+      </button>
+      <div style="height:24px;"></div>`;
+  } else {
+    editingTags = [...card.tags];
+
+    const chapterOptions = CHAPTERS.map(ch =>
+      `<option value="${ch.id}" ${ch.id === card.chapter ? 'selected' : ''}>${ch.name}</option>`
+    ).join('');
+
+    container.innerHTML = `
+      <div class="form-group">
+        <label class="form-label form-label--required">章</label>
+        <select class="input-field" id="edit-chapter">${chapterOptions}</select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">タグ</label>
+        <div class="tag-input-area" id="tag-input-area-edit" onclick="document.getElementById('tag-text-input-edit').focus()">
+          <input class="tag-text-input" id="tag-text-input-edit"
+            placeholder="タグを入力してEnter"
+            oninput="renderTagSuggestionsEdit()"
+            onkeydown="handleTagKeydownEdit(event)">
+        </div>
+        <div class="tag-suggestions" id="tag-suggestions-edit"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label form-label--required">Q. 質問</label>
+        <textarea class="input-field textarea-field textarea-field--large"
+          id="edit-front" maxlength="500">${escapeHtml(card.front)}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label form-label--required">A. 答え</label>
+        <textarea class="input-field textarea-field"
+          id="edit-back" maxlength="500">${escapeHtml(card.back)}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">補足説明（任意）</label>
+        <textarea class="input-field textarea-field textarea-field--large"
+          id="edit-note" maxlength="2000">${escapeHtml(card.note || '')}</textarea>
+      </div>`;
+
+    renderTagChipsInEdit();
+    renderTagSuggestionsEdit();
+  }
+}
+
+/* タグ操作（編集モード用） */
+function handleTagKeydownEdit(e) {
+  const input = e.target;
+  if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+    e.preventDefault();
+    addTagEdit(input.value.trim());
+    input.value = '';
+    renderTagSuggestionsEdit();
+  }
+  if (e.key === 'Backspace' && input.value === '' && editingTags.length > 0) {
+    editingTags.pop();
+    renderTagChipsInEdit();
+  }
+}
+
+function addTagEdit(tag) {
+  const normalized = tag.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-　-鿿゠-ヿ぀-ゟ]/g, '');
+  if (!normalized || editingTags.includes(normalized)) return;
+  editingTags.push(normalized);
+  renderTagChipsInEdit();
+}
+
+function removeTagEdit(idx) {
+  editingTags.splice(idx, 1);
+  renderTagChipsInEdit();
+}
+
+function renderTagChipsInEdit() {
+  const area  = document.getElementById('tag-input-area-edit');
+  const input = document.getElementById('tag-text-input-edit');
+  if (!area || !input) return;
+  area.querySelectorAll('.tag-chip').forEach(el => el.remove());
+  editingTags.forEach((t, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${escapeHtml(t)}<button class="tag-chip__remove" onclick="removeTagEdit(${i})" aria-label="${escapeHtml(t)}を削除">×</button>`;
+    area.insertBefore(chip, input);
+  });
+}
+
+function renderTagSuggestionsEdit() {
+  const inputEl = document.getElementById('tag-text-input-edit');
+  const query   = inputEl ? inputEl.value.trim().toLowerCase() : '';
+  const used    = getAllUsedTags(state.cards);
+  const filtered = used
+    .filter(t => !editingTags.includes(t) && (query === '' || t.includes(query)))
+    .slice(0, 12);
+
+  const container = document.getElementById('tag-suggestions-edit');
+  if (!container) return;
+  container.innerHTML = '';
+  filtered.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tag-suggestion-chip';
+    btn.textContent = t;
+    btn.onclick = () => {
+      addTagEdit(t);
+      document.getElementById('tag-text-input-edit').value = '';
+      renderTagSuggestionsEdit();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function saveEditedCard() {
+  const chapter = document.getElementById('edit-chapter').value;
+  const front   = document.getElementById('edit-front').value.trim();
+  const back    = document.getElementById('edit-back').value.trim();
+  const note    = document.getElementById('edit-note').value.trim();
+
+  if (!front) { showToast('Q.（質問）を入力してください', 'error'); return; }
+  if (!back)  { showToast('A.（答え）を入力してください', 'error'); return; }
+
+  const idx = state.cards.findIndex(c => c.id === detailCardId);
+  if (idx === -1) return;
+
+  state.cards[idx] = {
+    ...state.cards[idx],
+    chapter, tags: [...editingTags], front, back, note,
+    updatedAt: Date.now()
+  };
+  saveState();
+
+  detailEditMode = false;
+  document.getElementById('btn-edit-toggle').textContent = '編集';
+  document.getElementById('detail-overlay-title').textContent = 'カード詳細';
+  renderCardDetail();
+  renderCards();
+  showToast('カードを更新しました', 'success');
+}
+
+function deleteCard(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  const ok = confirm(`「${card.front.slice(0, 30)}...」を削除します。よろしいですか？`);
+  if (!ok) return;
+
+  state.cards      = state.cards.filter(c => c.id !== cardId);
+  state.cardStates = state.cardStates.filter(cs => cs.cardId !== cardId);
+  state.stats.totalCards = state.cards.length;
+  saveState();
+
+  document.getElementById('card-detail-overlay').style.display = 'none';
+  detailCardId   = null;
+  detailEditMode = false;
+  renderCards();
+  showToast('カードを削除しました');
+}
+
+/* ===== エクスポート / インポート ===== */
+
+function exportData() {
+  const payload = {
+    exportedAt: Date.now(),
+    appVersion: "1.0",
+    data: state
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `srs-backup-${formatDate(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('エクスポートしました', 'success');
+}
+
+function triggerImport() {
+  document.getElementById('import-file-input').click();
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (!payload.data || !payload.data.version) {
+        showToast('無効なファイル形式です', 'error');
+        return;
+      }
+      if (payload.data.version !== "1.0") {
+        showToast('対応していないバージョンです', 'error');
+        return;
+      }
+      const ok = confirm('現在のデータをインポートデータで完全に上書きします。よろしいですか？');
+      if (!ok) return;
+      saveState(payload.data);
+      location.reload();
+    } catch (err) {
+      showToast('読み込みに失敗しました', 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function resetData() {
+  const ok = confirm('すべての学習データを削除します。この操作は取り消せません。よろしいですか？');
+  if (!ok) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+/* ===== セキュリティユーティリティ ===== */
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/* ===== カード検索 (FR-14) ===== */
+
+let searchActive = false;
+let searchQuery  = '';
+
+function toggleSearch() {
+  searchActive = !searchActive;
+  const wrap  = document.getElementById('search-bar-wrap');
+  const input = document.getElementById('search-input');
+  wrap.classList.toggle('visible', searchActive);
+  if (searchActive) {
+    searchQuery = '';
+    input.value = '';
+    document.getElementById('search-result-count').textContent = '';
+    document.getElementById('search-clear-btn').style.display = 'none';
+    setTimeout(() => input.focus(), 100);
+  } else {
+    searchQuery = '';
+    renderCards();
+  }
+}
+
+function onSearchInput() {
+  const input = document.getElementById('search-input');
+  searchQuery = input.value.trim();
+  document.getElementById('search-clear-btn').style.display = searchQuery ? 'flex' : 'none';
+  renderCards();
+}
+
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  searchQuery = '';
+  document.getElementById('search-clear-btn').style.display = 'none';
+  document.getElementById('search-result-count').textContent = '';
+  document.getElementById('search-input').focus();
+  renderCards();
+}
+
+function searchCards(cards, query) {
+  if (!query) return cards;
+  const q = query.toLowerCase();
+  return cards.filter(c =>
+    c.front.toLowerCase().includes(q) ||
+    c.back.toLowerCase().includes(q)  ||
+    (c.note && c.note.toLowerCase().includes(q)) ||
+    c.tags.some(t => t.toLowerCase().includes(q))
+  );
+}
+
+/* ===== 音声入力 (FR-13) ===== */
+
+let currentRecognition = null;
+
+function startVoiceInput(targetId, btnId) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast('お使いのブラウザは音声入力に対応していません', 'error');
+    return;
+  }
+
+  const btn = document.getElementById(btnId);
+
+  if (currentRecognition) {
+    currentRecognition.stop();
+    currentRecognition = null;
+    if (btn) { btn.classList.remove('recording'); btn.childNodes[1].textContent = '音声入力'; }
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  currentRecognition = recognition;
+
+  if (btn) { btn.classList.add('recording'); btn.childNodes[1].textContent = '録音中…'; }
+  showToast('音声を認識中です…');
+
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript;
+    const target = document.getElementById(targetId);
+    if (target) {
+      const cur = target.value;
+      target.value = cur ? cur + (cur.endsWith('。') || cur.endsWith('、') ? '' : '') + text : text;
+      target.focus();
+    }
+    showToast('音声を認識しました', 'success');
+  };
+
+  recognition.onerror = e => {
+    const msgs = { 'no-speech': '音声が検出されませんでした', 'not-allowed': 'マイクの使用が許可されていません' };
+    showToast(msgs[e.error] || '音声認識に失敗しました', 'error');
+  };
+
+  recognition.onend = () => {
+    currentRecognition = null;
+    if (btn) { btn.classList.remove('recording'); btn.childNodes[1].textContent = '音声入力'; }
+  };
+
+  recognition.start();
+}
+
+/* ===== キーボードショートカット ===== */
+
+document.addEventListener('keydown', e => {
+  const overlay = document.getElementById('session-overlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  if (!session.answerShown) {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); showAnswer(); }
+  } else {
+    if (e.key === '1') rateCard(0);
+    if (e.key === '2') rateCard(1);
+    if (e.key === '3') rateCard(2);
+  }
+});
+
+/* ===== 初期化 ===== */
+
+(function init() {
+  state = loadState();
+
+  // currentView が cards/profile なら home に戻す（セッション中断リロード対策）
+  const validViews = ['home', 'cards', 'profile'];
+  if (!validViews.includes(state.currentView)) state.currentView = 'home';
+
+  // stats の totalCards が実際のカード数と乖離していたら修正
+  if (state.stats.totalCards !== state.cards.length) {
+    state.stats.totalCards = state.cards.length;
+  }
+
+  // 未完了セッションがあれば endedAt を補完
+  state.sessions.forEach(s => {
+    if (!s.endedAt) s.endedAt = s.startedAt;
+  });
+
+  const view = state.currentView;
+  document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === view);
+  });
+  document.querySelectorAll('.view').forEach(v => {
+    v.classList.toggle('active', v.id === 'view-' + view);
+  });
+
+  renderView(view);
+  saveState();
+
+  // 期限超過カードがあれば起動時にトースト通知
+  const overdueCount = state.cardStates.filter(cs =>
+    cs.nextReviewAt < new Date().setHours(0,0,0,0) && cs.reps > 0
+  ).length;
+  if (overdueCount > 0) {
+    setTimeout(() => showToast(`期限超過カードが ${overdueCount} 枚あります`, 'warning'), 500);
+  }
+})();
+</script>
+</body>
+</html>
