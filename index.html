@@ -2452,6 +2452,17 @@ function loadState() {
     }
     const parsed = JSON.parse(raw);
     if (parsed.version !== "1.0") return migrate(parsed);
+    // DEFAULT_CARDSのうちまだ存在しないカードをマージする
+    const existingIds = new Set(parsed.cards.map(c => c.id));
+    const newCards = DEFAULT_CARDS.filter(c => !existingIds.has(c.id));
+    if (newCards.length > 0) {
+      parsed.cards = parsed.cards.concat(newCards.map(c => ({ ...c })));
+      parsed.cardStates = parsed.cardStates.concat(newCards.map(c => ({
+        cardId: c.id, ef: 2.5, interval: 0, reps: 0,
+        nextReviewAt: c.createdAt, lastReviewedAt: null
+      })));
+      parsed.stats.totalCards = parsed.cards.length;
+    }
     return parsed;
   } catch (e) {
     console.error('Failed to load state:', e);
