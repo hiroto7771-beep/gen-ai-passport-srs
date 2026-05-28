@@ -1470,6 +1470,84 @@
       color: var(--color-text-tertiary);
       letter-spacing: 0.5px;
     }
+
+    /* ===== デッキ管理 ===== */
+    .deck-list { display: flex; flex-direction: column; gap: 12px; padding: var(--space-4); }
+    .deck-card {
+      background: var(--color-surface); border-radius: var(--radius-lg);
+      border: var(--border-medium); padding: 16px;
+      cursor: pointer; transition: box-shadow 0.15s;
+    }
+    .deck-card:active { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .deck-card__header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .deck-card__color-bar { width: 4px; height: 40px; border-radius: 2px; flex-shrink: 0; }
+    .deck-card__name { font-size: 16px; font-weight: 600; flex: 1; }
+    .deck-card__desc { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; line-clamp: 2; }
+    .deck-card__stats { display: flex; gap: 12px; font-size: 12px; color: var(--color-text-tertiary); }
+    .deck-card__active-badge {
+      font-size: 11px; padding: 2px 8px; border-radius: var(--radius-full);
+      background: var(--color-primary-light); color: var(--color-primary-dark);
+      font-weight: 500;
+    }
+    .deck-empty { text-align: center; padding: 48px 24px; color: var(--color-text-secondary); }
+    .deck-empty__icon { font-size: 40px; margin-bottom: 12px; }
+    .deck-detail-actions {
+      display: flex; gap: 8px; padding: var(--space-4); flex-wrap: wrap;
+    }
+    .deck-select-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: var(--color-bg);
+      border-top: var(--border-medium); position: sticky; bottom: 0;
+    }
+    .deck-card-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: var(--border-thin);
+    }
+    .deck-card-item__check {
+      width: 20px; height: 20px; border-radius: 4px;
+      border: 2px solid var(--color-border-strong); flex-shrink: 0;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      background: white; transition: background 0.1s, border-color 0.1s;
+    }
+    .deck-card-item__check.checked {
+      background: var(--color-primary); border-color: var(--color-primary);
+    }
+    .deck-card-item__check.checked::after { content: '✓'; color: white; font-size: 12px; }
+    .deck-card-item__body { flex: 1; min-width: 0; }
+    .deck-card-item__front { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bulk-review-date-row { display: flex; gap: 8px; flex-wrap: wrap; padding: var(--space-4); }
+    .date-chip {
+      padding: 6px 14px; border-radius: var(--radius-full); border: var(--border-medium);
+      font-size: 13px; cursor: pointer; background: var(--color-surface);
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .date-chip:hover { background: var(--color-primary-light); border-color: var(--color-primary); }
+
+    /* ===== カテゴリ管理 ===== */
+    .category-manage-list { display: flex; flex-direction: column; gap: 8px; }
+    .category-manage-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; background: var(--color-surface);
+      border-radius: var(--radius-md); border: var(--border-medium);
+    }
+    .category-manage-dot {
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    }
+    .category-manage-name { flex: 1; font-size: 14px; font-weight: 500; }
+    .category-manage-count { font-size: 12px; color: var(--color-text-tertiary); }
+    .category-manage-actions { display: flex; gap: 4px; }
+    .color-picker-row { display: flex; gap: 10px; flex-wrap: wrap; padding: 4px 0; }
+    .color-swatch {
+      width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+      border: 3px solid transparent; transition: border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .color-swatch.selected { border-color: var(--color-text-primary); }
+    .profile-section__header-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-4) var(--space-4) var(--space-3);
+    }
+    .profile-section__header-row .profile-section__header { padding: 0; }
   </style>
 </head>
 <body>
@@ -1539,6 +1617,15 @@
     </header>
 
     <main class="page-content" id="home-content">
+      <!-- アクティブデッキバナー -->
+      <div id="active-deck-banner" style="display:none;background:var(--color-primary-light);border-radius:var(--radius-md);padding:10px 14px;margin:var(--space-4) var(--space-4) 0;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <span style="font-size:13px;color:var(--color-primary-dark);">
+          <svg class="icon" width="14" height="14" style="margin-right:4px;vertical-align:-2px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          デッキ: <strong id="active-deck-name"></strong>
+        </span>
+        <button class="btn-text" style="font-size:12px;" onclick="clearActiveDeckFromHome()">解除</button>
+      </div>
+
       <!-- ヒーローカード -->
       <div class="hero-card" id="hero-card">
         <div class="hero-card__label">今日の復習</div>
@@ -1551,6 +1638,11 @@
           style="background:white;color:var(--color-primary);width:100%;margin-top:4px;"
           onclick="startSession()">
           学習を開始する
+        </button>
+        <button class="btn" id="btn-extra-session"
+          style="background:rgba(255,255,255,0.3);color:white;width:100%;margin-top:8px;border:1px solid rgba(255,255,255,0.5);"
+          onclick="startExtraSession('free')">
+          追加学習
         </button>
       </div>
 
@@ -1668,6 +1760,17 @@
     </button>
   </div>
 
+  <!-- ===== Decks ビュー ===== -->
+  <div class="view" id="view-decks">
+    <header class="page-header">
+      <span class="page-header__title">デッキ</span>
+      <button class="btn-icon" onclick="openDeckEdit(null)" aria-label="デッキを追加" style="margin-left:auto;">
+        <svg class="icon" width="22" height="22"><use href="#icon-plus"/></svg>
+      </button>
+    </header>
+    <main class="page-content" id="decks-content"></main>
+  </div>
+
   <!-- ===== Profile ビュー (SC-06) ===== -->
   <div class="view" id="view-profile">
     <header class="page-header">
@@ -1686,6 +1789,15 @@
     <button class="bottom-nav-item" data-view="cards" onclick="navigateTo('cards')" aria-label="カード">
       <svg class="icon" width="22" height="22"><use href="#icon-cards"/></svg>
       <span>Cards</span>
+    </button>
+    <button class="bottom-nav-item" data-view="decks" onclick="navigateTo('decks')" aria-label="デッキ">
+      <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+        <line x1="12" y1="12" x2="12" y2="17"/>
+        <line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/>
+      </svg>
+      <span>Decks</span>
     </button>
     <button class="bottom-nav-item" data-view="profile" onclick="navigateTo('profile')" aria-label="プロフィール">
       <svg class="icon" width="22" height="22"><use href="#icon-user"/></svg>
@@ -1785,6 +1897,84 @@
     <div class="session-content" id="session-content"></div>
   </div>
 
+  <!-- ===== デッキ編集 オーバーレイ ===== -->
+  <div class="card-overlay" id="deck-edit-overlay" style="display:none" aria-label="デッキ編集">
+    <header class="card-overlay__header">
+      <button class="btn-icon" aria-label="閉じる" onclick="closeDeckEdit()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <span class="card-overlay__title" id="deck-edit-title">デッキを追加</span>
+      <button class="btn-text" onclick="saveDeckEdit()">保存</button>
+    </header>
+    <div class="card-overlay__content">
+      <input type="hidden" id="deck-edit-id" value="">
+      <div class="form-group">
+        <label class="form-label form-label--required">デッキ名</label>
+        <input class="input-field" id="deck-edit-name" placeholder="例: 英検1級対策、React学習" maxlength="50">
+      </div>
+      <div class="form-group">
+        <label class="form-label">説明（任意）</label>
+        <textarea class="input-field textarea-field" id="deck-edit-desc" placeholder="このデッキの目的・概要" maxlength="200"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">カラー</label>
+        <div class="color-picker-row" id="deck-color-picker"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== デッキ詳細 オーバーレイ ===== -->
+  <div class="card-overlay" id="deck-detail-overlay" style="display:none" aria-label="デッキ詳細">
+    <header class="card-overlay__header">
+      <button class="btn-icon" aria-label="閉じる" onclick="closeDeckDetail()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <span class="card-overlay__title" id="deck-detail-title">デッキ</span>
+      <button class="btn-text" id="deck-detail-edit-btn" onclick="openDeckEditFromDetail()">編集</button>
+    </header>
+    <div class="card-overlay__content" id="deck-detail-content"></div>
+  </div>
+
+  <!-- ===== デッキへのカード追加 オーバーレイ ===== -->
+  <div class="card-overlay" id="deck-addcards-overlay" style="display:none" aria-label="カードを追加">
+    <header class="card-overlay__header">
+      <button class="btn-icon" aria-label="閉じる" onclick="closeDeckAddCards()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <span class="card-overlay__title">カードを追加</span>
+      <button class="btn-text" onclick="confirmAddCardsToDeck()">追加</button>
+    </header>
+    <div class="card-overlay__content">
+      <div class="search-bar-wrap visible" style="margin-bottom:8px;">
+        <svg class="icon search-bar-icon" width="16" height="16"><use href="#icon-search"/></svg>
+        <input class="search-bar-input" id="deck-addcards-search" placeholder="カードを検索" oninput="renderDeckAddCardslist()">
+      </div>
+      <div id="deck-addcards-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== カテゴリ編集 オーバーレイ ===== -->
+  <div class="card-overlay" id="category-edit-overlay" style="display:none" aria-label="カテゴリ編集">
+    <header class="card-overlay__header">
+      <button class="btn-icon" aria-label="閉じる" onclick="closeCategoryEdit()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <span class="card-overlay__title" id="category-edit-title">カテゴリを追加</span>
+      <button class="btn-text" onclick="saveCategoryEdit()">保存</button>
+    </header>
+    <div class="card-overlay__content">
+      <input type="hidden" id="category-edit-id" value="">
+      <div class="form-group">
+        <label class="form-label form-label--required">カテゴリ名</label>
+        <input class="input-field" id="category-edit-name" placeholder="例: 英語、数学、プログラミング" maxlength="40">
+      </div>
+      <div class="form-group">
+        <label class="form-label">カラー</label>
+        <div class="color-picker-row" id="category-color-picker"></div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /#app -->
 
 <script>
@@ -1793,7 +1983,10 @@
 const STORAGE_KEY = 'srs_app_state_v1';
 
 const INITIAL_STATE = {
-  version: "1.0",
+  version: "2.0",
+  categories: null,
+  decks: [],
+  tags: [],
   cards: [],
   cardStates: [],
   logs: [],
@@ -1809,11 +2002,12 @@ const INITIAL_STATE = {
     theme: "light",
     sessionSize: 20,
     newCardsPerDay: 10,
-    forgottenCardDelayMin: 10
+    forgottenCardDelayMin: 10,
+    activeDeckId: null
   }
 };
 
-const CHAPTERS = [
+const DEFAULT_CATEGORIES = [
   { id: "basics",   name: "生成AIの基礎",       color: "success", order: 1 },
   { id: "llm",      name: "大規模言語モデル",     color: "primary", order: 2 },
   { id: "prompt",   name: "プロンプト技術",       color: "warning", order: 3 },
@@ -1821,13 +2015,25 @@ const CHAPTERS = [
   { id: "business", name: "業務活用",             color: "purple",  order: 5 }
 ];
 
-const CHAPTER_COLORS = {
+const CATEGORY_COLORS = {
   success: { bg: "#ECFDF5", fg: "#065F46" },
   primary: { bg: "#EFF6FF", fg: "#1E40AF" },
   warning: { bg: "#FEF3C7", fg: "#92400E" },
   danger:  { bg: "#FEE2E2", fg: "#991B1B" },
-  purple:  { bg: "#F3E8FF", fg: "#6B21A8" }
+  purple:  { bg: "#F3E8FF", fg: "#6B21A8" },
+  orange:  { bg: "#FFF7ED", fg: "#9A3412" },
+  teal:    { bg: "#F0FDFA", fg: "#134E4A" }
 };
+
+const COLOR_OPTIONS = [
+  { id: "success", label: "緑",   sample: "#10B981" },
+  { id: "primary", label: "青",   sample: "#3A7AFE" },
+  { id: "warning", label: "黄",   sample: "#F59E0B" },
+  { id: "danger",  label: "赤",   sample: "#EF4444" },
+  { id: "purple",  label: "紫",   sample: "#8B5CF6" },
+  { id: "orange",  label: "橙",   sample: "#F97316" },
+  { id: "teal",    label: "青緑", sample: "#14B8A6" }
+];
 
 /* ===== デフォルトカード（初回起動時にセット） ===== */
 const DEFAULT_CARDS = [
@@ -2442,6 +2648,7 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       const s = structuredClone(INITIAL_STATE);
+      s.categories = DEFAULT_CATEGORIES.map(c => ({ ...c }));
       s.cards = DEFAULT_CARDS.map(c => ({ ...c }));
       s.cardStates = DEFAULT_CARDS.map(c => ({
         cardId: c.id, ef: 2.5, interval: 0, reps: 0,
@@ -2450,8 +2657,8 @@ function loadState() {
       s.stats.totalCards = DEFAULT_CARDS.length;
       return s;
     }
-    const parsed = JSON.parse(raw);
-    if (parsed.version !== "1.0") return migrate(parsed);
+    let parsed = JSON.parse(raw);
+    if (parsed.version !== "2.0") parsed = migrate(parsed);
     // DEFAULT_CARDSのうちまだ存在しないカードをマージする
     const existingIds = new Set(parsed.cards.map(c => c.id));
     const newCards = DEFAULT_CARDS.filter(c => !existingIds.has(c.id));
@@ -2466,7 +2673,9 @@ function loadState() {
     return parsed;
   } catch (e) {
     console.error('Failed to load state:', e);
-    return structuredClone(INITIAL_STATE);
+    const s = structuredClone(INITIAL_STATE);
+    s.categories = DEFAULT_CATEGORIES.map(c => ({ ...c }));
+    return s;
   }
 }
 
@@ -2482,6 +2691,20 @@ function saveState(s) {
 }
 
 function migrate(oldState) {
+  // v1.0 → v2.0: categories/decks/tags をstateに移行
+  if (!oldState.version || oldState.version === "1.0") {
+    return {
+      ...oldState,
+      version: "2.0",
+      categories: DEFAULT_CATEGORIES.map(c => ({ ...c })),
+      decks: oldState.decks || [],
+      tags: oldState.tags || [],
+      settings: {
+        ...oldState.settings,
+        activeDeckId: null
+      }
+    };
+  }
   return oldState;
 }
 
@@ -2557,27 +2780,51 @@ function isOverdue(cs) {
   return cs.nextReviewAt < Date.now() && cs.reps > 0;
 }
 
-function selectSessionCards(st, sessionSize, newCardsPerDay) {
-  sessionSize   = sessionSize   || st.settings.sessionSize;
+function selectSessionCards(st, sessionSize, newCardsPerDay, deckId) {
+  sessionSize    = sessionSize    || st.settings.sessionSize;
   newCardsPerDay = newCardsPerDay || st.settings.newCardsPerDay;
-  const now = Date.now();
+  const activeDeck = deckId || st.settings.activeDeckId;
   const todayStart    = new Date().setHours(0, 0, 0, 0);
   const tomorrowStart = todayStart + 24 * 60 * 60 * 1000;
 
+  // デッキ指定時はそのデッキのカードIDのみに絞る
+  let eligibleIds = null;
+  if (activeDeck) {
+    eligibleIds = new Set(st.cards.filter(c => (c.deckIds || []).includes(activeDeck)).map(c => c.id));
+  }
+
+  const eligible = cs => !eligibleIds || eligibleIds.has(cs.cardId);
+
   const overdue = st.cardStates
-    .filter(cs => cs.nextReviewAt < todayStart && cs.reps > 0)
+    .filter(cs => eligible(cs) && cs.nextReviewAt < todayStart && cs.reps > 0)
     .sort((a, b) => a.nextReviewAt - b.nextReviewAt);
 
   const dueToday = st.cardStates
-    .filter(cs => cs.nextReviewAt >= todayStart && cs.nextReviewAt < tomorrowStart);
+    .filter(cs => eligible(cs) && cs.nextReviewAt >= todayStart && cs.nextReviewAt < tomorrowStart);
 
   const reviewedToday = countReviewedToday(st);
   const newSlots = Math.max(0, newCardsPerDay - reviewedToday);
   const newCards = st.cardStates
-    .filter(cs => cs.reps === 0 && cs.lastReviewedAt === null)
+    .filter(cs => eligible(cs) && cs.reps === 0 && cs.lastReviewedAt === null)
     .slice(0, newSlots);
 
   return [...overdue, ...dueToday, ...newCards].slice(0, sessionSize);
+}
+
+function selectExtraSessionCards(st, mode, deckId) {
+  // mode: 'new' = 未学習カード全て, 'all' = 全カード（SRS無視）
+  const activeDeck = deckId || st.settings.activeDeckId;
+  let eligibleIds = null;
+  if (activeDeck) {
+    eligibleIds = new Set(st.cards.filter(c => (c.deckIds || []).includes(activeDeck)).map(c => c.id));
+  }
+  const eligible = cs => !eligibleIds || eligibleIds.has(cs.cardId);
+
+  if (mode === 'new') {
+    return st.cardStates.filter(cs => eligible(cs) && cs.reps === 0 && cs.lastReviewedAt === null);
+  }
+  // 'all': 全カード
+  return st.cardStates.filter(cs => eligible(cs));
 }
 
 function countReviewedToday(st) {
@@ -2630,15 +2877,23 @@ function formatNextReview(cs) {
   return `${days}日後`;
 }
 
+function getCategories() {
+  return (state && state.categories) ? state.categories : DEFAULT_CATEGORIES;
+}
+
+function getCategoryById(id) {
+  return getCategories().find(c => c.id === id) || null;
+}
+
 function getChapterTagStyle(chapterId) {
-  const ch = CHAPTERS.find(c => c.id === chapterId);
+  const ch = getCategoryById(chapterId);
   if (!ch) return { bg: "#F3F4F6", fg: "#6B7280" };
-  return CHAPTER_COLORS[ch.color] || { bg: "#F3F4F6", fg: "#6B7280" };
+  return CATEGORY_COLORS[ch.color] || { bg: "#F3F4F6", fg: "#6B7280" };
 }
 
 function getChapterName(chapterId) {
-  const ch = CHAPTERS.find(c => c.id === chapterId);
-  return ch ? ch.name : chapterId;
+  const ch = getCategoryById(chapterId);
+  return ch ? ch.name : (chapterId || '未分類');
 }
 
 function getCardDotClass(cs) {
@@ -2701,21 +2956,29 @@ function navigateTo(viewName) {
 function renderView(viewName) {
   if (viewName === 'home')    renderHome();
   if (viewName === 'cards')   renderCards();
+  if (viewName === 'decks')   renderDecks();
   if (viewName === 'profile') renderProfile();
 }
 
 /* ===== Home 画面レンダー ===== */
 
 function renderHome() {
-  const now = Date.now();
   const todayStart    = new Date().setHours(0,0,0,0);
   const tomorrowStart = todayStart + 24*60*60*1000;
   const dayAfterStart = tomorrowStart + 24*60*60*1000;
 
-  const overdueCards  = state.cardStates.filter(cs => cs.nextReviewAt < todayStart && cs.reps > 0);
-  const todayCards    = state.cardStates.filter(cs => cs.nextReviewAt >= todayStart && cs.nextReviewAt < tomorrowStart);
-  const tomorrowCards = state.cardStates.filter(cs => cs.nextReviewAt >= tomorrowStart && cs.nextReviewAt < dayAfterStart);
-  const newCards      = state.cardStates.filter(cs => cs.reps === 0 && cs.lastReviewedAt === null);
+  // アクティブデッキフィルタ
+  const activeDeckId = state.settings.activeDeckId;
+  let deckFilter = null;
+  if (activeDeckId) {
+    deckFilter = new Set(state.cards.filter(c => (c.deckIds || []).includes(activeDeckId)).map(c => c.id));
+  }
+  const inScope = cs => !deckFilter || deckFilter.has(cs.cardId);
+
+  const overdueCards  = state.cardStates.filter(cs => inScope(cs) && cs.nextReviewAt < todayStart && cs.reps > 0);
+  const todayCards    = state.cardStates.filter(cs => inScope(cs) && cs.nextReviewAt >= todayStart && cs.nextReviewAt < tomorrowStart);
+  const tomorrowCards = state.cardStates.filter(cs => inScope(cs) && cs.nextReviewAt >= tomorrowStart && cs.nextReviewAt < dayAfterStart);
+  const newCards      = state.cardStates.filter(cs => inScope(cs) && cs.reps === 0 && cs.lastReviewedAt === null);
 
   const todayTotal = overdueCards.length + todayCards.length + Math.min(newCards.length, state.settings.newCardsPerDay);
 
@@ -2736,7 +2999,30 @@ function renderHome() {
   document.getElementById('stat-streak').textContent    = state.stats.streakDays;
   document.getElementById('stat-retention').textContent = retention;
 
+  // アクティブデッキバナー
+  const banner = document.getElementById('active-deck-banner');
+  if (banner) {
+    if (activeDeckId) {
+      const deck = (state.decks || []).find(d => d.id === activeDeckId);
+      if (deck) {
+        banner.style.display = 'flex';
+        document.getElementById('active-deck-name').textContent = deck.name;
+      } else {
+        banner.style.display = 'none';
+      }
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
   renderWeeklyGraph();
+}
+
+function clearActiveDeckFromHome() {
+  state.settings.activeDeckId = null;
+  saveState();
+  renderHome();
+  showToast('全体モードに戻りました');
 }
 
 function renderWeeklyGraph() {
@@ -2860,7 +3146,7 @@ function renderChapterFilterChips() {
   allBtn.onclick = () => { currentChapterFilter = 'all'; renderCards(); };
   container.appendChild(allBtn);
 
-  CHAPTERS.forEach(ch => {
+  getCategories().forEach(ch => {
     const btn = document.createElement('button');
     btn.className = 'chip ' + (currentChapterFilter === ch.id ? 'chip-active' : 'chip-default');
     btn.textContent = ch.name;
@@ -2885,6 +3171,10 @@ function getChapterProgress(chapterId) {
     mastered: masteredCount,
     masteryRate: states.length > 0 ? masteredCount / states.length : 0
   };
+}
+
+function getCategoryProgress(categoryId) {
+  return getChapterProgress(categoryId);
 }
 
 function getMonthlyReviewCounts(logs) {
@@ -2956,14 +3246,15 @@ function renderProfile() {
       </div>
     </div>`;
 
-  /* ---- 章別進捗 ---- */
-  const chapterBarColors = {
+  /* ---- カテゴリ別進捗 ---- */
+  const categoryBarColors = {
     success: '#10B981', primary: '#3A7AFE',
-    warning: '#F59E0B', danger:  '#FF4D4F', purple: '#8B5CF6'
+    warning: '#F59E0B', danger:  '#FF4D4F', purple: '#8B5CF6',
+    orange:  '#F97316', teal:    '#14B8A6'
   };
 
-  const chapterItemsHtml = CHAPTERS.map(ch => {
-    const prog = getChapterProgress(ch.id);
+  const chapterItemsHtml = getCategories().map(ch => {
+    const prog = getCategoryProgress(ch.id);
     if (prog.total === 0) return `
       <div class="chapter-progress-item">
         <div class="chapter-progress-header">
@@ -2971,7 +3262,7 @@ function renderProfile() {
           <span class="chapter-progress-pct" style="color:var(--color-text-tertiary);">カードなし</span>
         </div>
         <div class="chapter-progress-bar-bg">
-          <div class="chapter-progress-bar-fill" style="width:0%;background:${chapterBarColors[ch.color]||'#3A7AFE'};"></div>
+          <div class="chapter-progress-bar-fill" style="width:0%;background:${categoryBarColors[ch.color]||'#3A7AFE'};"></div>
         </div>
       </div>`;
     const pct = Math.round(prog.masteryRate * 100);
@@ -2983,7 +3274,7 @@ function renderProfile() {
         </div>
         <div class="chapter-progress-bar-bg">
           <div class="chapter-progress-bar-fill"
-            style="width:${pct}%;background:${chapterBarColors[ch.color]||'#3A7AFE'};"></div>
+            style="width:${pct}%;background:${categoryBarColors[ch.color]||'#3A7AFE'};"></div>
         </div>
         <div class="chapter-progress-counts">
           <span><span class="count-dot" style="background:var(--color-primary);"></span>新規 ${prog.new}</span>
@@ -2995,8 +3286,46 @@ function renderProfile() {
   }).join('');
 
   const chapterHtml = `
-    <div class="section__title" style="margin-bottom:var(--space-3);">章別進捗</div>
+    <div class="section__title" style="margin-bottom:var(--space-3);">カテゴリ別進捗</div>
     <div class="chapter-progress-list">${chapterItemsHtml}</div>`;
+
+  /* ---- カテゴリ管理 ---- */
+  const categoryDotColors = {
+    success: '#10B981', primary: '#3A7AFE', warning: '#F59E0B',
+    danger: '#EF4444', purple: '#8B5CF6', orange: '#F97316', teal: '#14B8A6'
+  };
+  const categoryListHtml = getCategories().map(ch => {
+    const cardCount = state.cards.filter(c => c.chapter === ch.id).length;
+    const dotColor  = categoryDotColors[ch.color] || '#3A7AFE';
+    return `
+      <div class="category-manage-item">
+        <span class="category-manage-dot" style="background:${dotColor};"></span>
+        <span class="category-manage-name">${escapeHtml(ch.name)}</span>
+        <span class="category-manage-count">${cardCount}枚</span>
+        <div class="category-manage-actions">
+          <button class="btn-icon" onclick="openCategoryEdit('${ch.id}')" aria-label="編集" title="編集">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button class="btn-icon" onclick="deleteCategory('${ch.id}')" aria-label="削除" title="削除" style="color:var(--color-danger);">
+            <svg class="icon" width="16" height="16"><use href="#icon-trash"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  const categoryManageHtml = `
+    <div class="profile-section" style="padding-bottom:0;">
+      <div class="profile-section__header-row">
+        <div class="profile-section__header">カテゴリ管理</div>
+        <button class="btn-text" style="padding:4px 0;" onclick="openCategoryEdit(null)">＋ 追加</button>
+      </div>
+      <div style="padding:0 var(--space-4) var(--space-4);">
+        <div class="category-manage-list">${categoryListHtml}</div>
+      </div>
+    </div>`;
 
   /* ---- データ管理 ---- */
   const dataHtml = `
@@ -3020,13 +3349,37 @@ function renderProfile() {
       </div>
     </div>`;
 
+  /* ---- タグ管理 ---- */
+  const allTags = getAllUsedTags(state.cards);
+  const managedTags = state.tags || [];
+  const mergedTags  = [...new Set([...managedTags, ...allTags])].sort();
+  const tagItemsHtml = mergedTags.length > 0
+    ? mergedTags.map(t => `
+        <span class="tag" style="background:#F3F4F6;color:#4B5563;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin:3px 3px 3px 0;"
+          title="タグを削除">
+          ${escapeHtml(t)}
+          <button onclick="deleteTag('${escapeHtml(t)}')" style="background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:14px;line-height:1;padding:0;" aria-label="削除">×</button>
+        </span>`).join('')
+    : '<span style="font-size:12px;color:var(--color-text-tertiary);">タグがまだありません</span>';
+
+  const tagManageHtml = `
+    <div class="profile-section">
+      <div class="profile-section__header-row">
+        <div class="profile-section__header">タグ管理</div>
+        <button class="btn-text" style="padding:4px 0;font-size:12px;" onclick="openAddTagPrompt()">＋ 追加</button>
+      </div>
+      <div style="padding:0 var(--space-4) var(--space-4);">
+        <div>${tagItemsHtml}</div>
+      </div>
+    </div>`;
+
   /* ---- アプリ情報 ---- */
   const infoHtml = `
     <div class="profile-section">
       <div class="profile-section__header">アプリ情報</div>
       <div class="profile-section__row">
         <span class="profile-section__row-label">バージョン</span>
-        <span style="font-size:13px;color:var(--color-text-secondary);">1.0.0</span>
+        <span style="font-size:13px;color:var(--color-text-secondary);">2.0.0</span>
       </div>
       <div class="profile-section__row">
         <span class="profile-section__row-label">最終学習日</span>
@@ -3036,7 +3389,7 @@ function renderProfile() {
       </div>
     </div>`;
 
-  container.innerHTML = heroHtml + monthlyHtml + chapterHtml + dataHtml + infoHtml
+  container.innerHTML = heroHtml + monthlyHtml + chapterHtml + categoryManageHtml + tagManageHtml + dataHtml + infoHtml
     + '<div style="height:8px;"></div>';
 }
 
@@ -3057,8 +3410,14 @@ let session = {
 function startSession() {
   const cards = selectSessionCards(state);
   if (cards.length === 0) {
-    showToast('今日の復習カードはありません');
+    showToast('今日の復習カードはありません。追加学習から新規カードを学べます。');
     return;
+  }
+
+  const activeDeck = state.settings.activeDeckId;
+  if (activeDeck) {
+    const deck = (state.decks || []).find(d => d.id === activeDeck);
+    if (deck) showToast(`デッキ「${deck.name}」で学習開始`, 'success');
   }
 
   const overdueCount = cards.filter(cs => isOverdue(cs)).length;
@@ -3066,6 +3425,102 @@ function startSession() {
     showToast(`期限超過カードが ${overdueCount} 枚あります`, 'warning');
   }
 
+  _launchSession(cards);
+}
+
+function closeSession() {
+  if (session.queue.length > 0 && session.currentIdx < session.queue.length) {
+    const ok = confirm('学習を中断しますか？');
+    if (!ok) return;
+  }
+  finalizeSession();
+  document.getElementById('session-overlay').style.display = 'none';
+  renderHome();
+}
+
+function startExtraSession(mode) {
+  // mode: 'new' = 未学習, 'free' = 自由選択ピッカーを開く
+  if (mode === 'new') {
+    const cards = selectExtraSessionCards(state, 'new');
+    if (cards.length === 0) {
+      showToast('未学習カードはありません', 'error');
+      return;
+    }
+    _launchSession(cards);
+    showToast(`未学習 ${cards.length} 枚で学習開始`);
+    return;
+  }
+  if (mode === 'free') {
+    openFreeSessionPicker();
+  }
+}
+
+function openFreeSessionPicker() {
+  const activeDeck = state.settings.activeDeckId;
+  const deckLabel  = activeDeck
+    ? ((state.decks || []).find(d => d.id === activeDeck)?.name || '') + 'のカード'
+    : 'すべてのカード';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'card-overlay';
+  overlay.id = 'free-session-overlay';
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <header class="card-overlay__header">
+      <button class="btn-icon" onclick="document.getElementById('free-session-overlay').remove()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <span class="card-overlay__title">追加学習</span>
+      <div style="width:44px;"></div>
+    </header>
+    <div class="card-overlay__content">
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px;">対象: ${escapeHtml(deckLabel)}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-primary" onclick="startExtraSessionAll('new')">
+          未学習カードをすべて学ぶ
+          <span style="font-size:12px;font-weight:400;opacity:0.8;margin-left:6px;">${selectExtraSessionCards(state,'new').length}枚</span>
+        </button>
+        <button class="btn-secondary" onclick="startExtraSessionAll('all')">
+          全カードを練習する
+          <span style="font-size:12px;font-weight:400;opacity:0.7;margin-left:6px;">${selectExtraSessionCards(state,'all').length}枚</span>
+        </button>
+      </div>
+      <div style="margin-top:20px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">カテゴリを選んで練習</div>
+        <div style="display:flex;flex-direction:column;gap:8px;" id="free-category-list">
+          ${getCategories().map(ch => {
+            const ids = new Set(state.cards.filter(c => c.chapter === ch.id).map(c => c.id));
+            const count = state.cardStates.filter(cs => ids.has(cs.cardId)).length;
+            if (count === 0) return '';
+            return `<button class="btn-secondary" onclick="startExtraSessionByCategory('${ch.id}')">
+              ${escapeHtml(ch.name)} <span style="font-size:12px;opacity:0.7;margin-left:4px;">${count}枚</span>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('app').appendChild(overlay);
+}
+
+function startExtraSessionAll(mode) {
+  const cards = selectExtraSessionCards(state, mode);
+  if (cards.length === 0) { showToast('対象カードがありません', 'error'); return; }
+  document.getElementById('free-session-overlay')?.remove();
+  _launchSession(cards);
+  showToast(`${cards.length} 枚で学習開始`);
+}
+
+function startExtraSessionByCategory(categoryId) {
+  const ids = new Set(state.cards.filter(c => c.chapter === categoryId).map(c => c.id));
+  const cards = state.cardStates.filter(cs => ids.has(cs.cardId));
+  if (cards.length === 0) { showToast('カードがありません', 'error'); return; }
+  document.getElementById('free-session-overlay')?.remove();
+  _launchSession(cards);
+  const catName = getChapterName(categoryId);
+  showToast(`「${catName}」${cards.length}枚で学習開始`);
+}
+
+function _launchSession(cards) {
   session.queue       = [...cards];
   session.retryMap    = new Map();
   session.currentIdx  = 0;
@@ -3077,27 +3532,13 @@ function startSession() {
   session.totalQueued = cards.length;
 
   state.sessions.push({
-    id: session.id,
-    startedAt: session.startTime,
-    endedAt: null,
-    cardCount: cards.length,
-    completedCount: 0,
+    id: session.id, startedAt: session.startTime, endedAt: null,
+    cardCount: cards.length, completedCount: 0,
     ratingDistribution: { forgotten: 0, normal: 0, easy: 0 }
   });
   saveState();
-
   document.getElementById('session-overlay').style.display = 'flex';
   renderSessionCard();
-}
-
-function closeSession() {
-  if (session.queue.length > 0 && session.currentIdx < session.queue.length) {
-    const ok = confirm('学習を中断しますか？');
-    if (!ok) return;
-  }
-  finalizeSession();
-  document.getElementById('session-overlay').style.display = 'none';
-  renderHome();
 }
 
 function renderSessionCard() {
@@ -3304,7 +3745,7 @@ function showCardCreate() {
   editingTags = [];
 
   const sel = document.getElementById('card-chapter');
-  sel.innerHTML = CHAPTERS.map(ch =>
+  sel.innerHTML = getCategories().map(ch =>
     `<option value="${ch.id}">${ch.name}</option>`
   ).join('');
 
@@ -3390,6 +3831,7 @@ function renderTagSuggestions() {
 
 function getAllUsedTags(cards) {
   const set = new Set();
+  if (state && state.tags) state.tags.forEach(t => set.add(t));
   cards.forEach(c => c.tags.forEach(t => set.add(t)));
   return [...set].sort();
 }
@@ -3519,7 +3961,7 @@ function renderCardDetail() {
   } else {
     editingTags = [...card.tags];
 
-    const chapterOptions = CHAPTERS.map(ch =>
+    const chapterOptions = getCategories().map(ch =>
       `<option value="${ch.id}" ${ch.id === card.chapter ? 'selected' : ''}>${ch.name}</option>`
     ).join('');
 
@@ -3673,7 +4115,7 @@ function deleteCard(cardId) {
 function exportData() {
   const payload = {
     exportedAt: Date.now(),
-    appVersion: "1.0",
+    appVersion: "2.0",
     data: state
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -3701,7 +4143,7 @@ function importData(event) {
         showToast('無効なファイル形式です', 'error');
         return;
       }
-      if (payload.data.version !== "1.0") {
+      if (!["1.0", "2.0"].includes(payload.data.version)) {
         showToast('対応していないバージョンです', 'error');
         return;
       }
@@ -3722,6 +4164,505 @@ function resetData() {
   if (!ok) return;
   localStorage.removeItem(STORAGE_KEY);
   location.reload();
+}
+
+/* ===== カテゴリ CRUD ===== */
+
+let editingCategoryColor = 'primary';
+
+function openCategoryEdit(categoryId) {
+  const isNew = !categoryId;
+  editingCategoryColor = isNew ? 'primary' : (getCategoryById(categoryId)?.color || 'primary');
+
+  document.getElementById('category-edit-title').textContent = isNew ? 'カテゴリを追加' : 'カテゴリを編集';
+  document.getElementById('category-edit-id').value   = categoryId || '';
+  document.getElementById('category-edit-name').value = isNew ? '' : (getCategoryById(categoryId)?.name || '');
+
+  renderColorPicker();
+  document.getElementById('category-edit-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('category-edit-name').focus(), 100);
+}
+
+function closeCategoryEdit() {
+  document.getElementById('category-edit-overlay').style.display = 'none';
+}
+
+function renderColorPicker() {
+  const container = document.getElementById('category-color-picker');
+  container.innerHTML = COLOR_OPTIONS.map(opt => `
+    <div class="color-swatch${editingCategoryColor === opt.id ? ' selected' : ''}"
+      style="background:${opt.sample};"
+      title="${opt.label}"
+      onclick="selectCategoryColor('${opt.id}')"></div>
+  `).join('');
+}
+
+function selectCategoryColor(colorId) {
+  editingCategoryColor = colorId;
+  renderColorPicker();
+}
+
+function saveCategoryEdit() {
+  const name = document.getElementById('category-edit-name').value.trim();
+  if (!name) { showToast('カテゴリ名を入力してください', 'error'); return; }
+
+  const id = document.getElementById('category-edit-id').value;
+
+  if (id) {
+    const idx = state.categories.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      state.categories[idx] = { ...state.categories[idx], name, color: editingCategoryColor };
+    }
+    showToast('カテゴリを更新しました', 'success');
+  } else {
+    const newId = 'cat-' + generateId().slice(0, 8);
+    const maxOrder = state.categories.reduce((m, c) => Math.max(m, c.order || 0), 0);
+    state.categories.push({ id: newId, name, color: editingCategoryColor, order: maxOrder + 1 });
+    showToast('カテゴリを追加しました', 'success');
+  }
+
+  saveState();
+  closeCategoryEdit();
+  renderProfile();
+}
+
+/* ===== タグ管理 ===== */
+
+function openAddTagPrompt() {
+  const name = prompt('追加するタグ名を入力してください:');
+  if (!name || !name.trim()) return;
+  const normalized = name.trim().toLowerCase().replace(/\s+/g, '-');
+  if (!state.tags) state.tags = [];
+  if (state.tags.includes(normalized)) { showToast('すでに存在するタグです', 'error'); return; }
+  state.tags.push(normalized);
+  saveState();
+  renderProfile();
+  showToast('タグを追加しました', 'success');
+}
+
+function deleteTag(tagName) {
+  const usedCount = state.cards.filter(c => c.tags.includes(tagName)).length;
+  const msg = usedCount > 0
+    ? `タグ「${tagName}」を削除します。${usedCount}枚のカードからも外れます。よろしいですか？`
+    : `タグ「${tagName}」を削除しますか？`;
+  if (!confirm(msg)) return;
+
+  if (!state.tags) state.tags = [];
+  state.tags = state.tags.filter(t => t !== tagName);
+  if (usedCount > 0) {
+    state.cards = state.cards.map(c => ({ ...c, tags: c.tags.filter(t => t !== tagName) }));
+  }
+  saveState();
+  renderProfile();
+  showToast('タグを削除しました');
+}
+
+function deleteCategory(categoryId) {
+  const cat = getCategoryById(categoryId);
+  if (!cat) return;
+  const cardCount = state.cards.filter(c => c.chapter === categoryId).length;
+  const msg = cardCount > 0
+    ? `「${cat.name}」を削除します。このカテゴリに属する ${cardCount} 枚のカードは「未分類」に移動します。よろしいですか？`
+    : `「${cat.name}」を削除しますか？`;
+  if (!confirm(msg)) return;
+
+  if (cardCount > 0) {
+    state.cards = state.cards.map(c =>
+      c.chapter === categoryId ? { ...c, chapter: 'uncategorized' } : c
+    );
+    // 未分類カテゴリが存在しなければ追加
+    if (!getCategoryById('uncategorized')) {
+      state.categories.push({ id: 'uncategorized', name: '未分類', color: 'primary', order: 999 });
+    }
+  }
+
+  state.categories = state.categories.filter(c => c.id !== categoryId);
+  saveState();
+  renderProfile();
+  showToast('カテゴリを削除しました');
+}
+
+/* ===== デッキ管理 ===== */
+
+let editingDeckColor = 'primary';
+let currentDeckId    = null;
+let deckSelectedCardIds = new Set();
+let deckAddCardsSelected = new Set();
+
+function renderDecks() {
+  const container = document.getElementById('decks-content');
+  const decks = state.decks || [];
+
+  if (decks.length === 0) {
+    container.innerHTML = `
+      <div class="deck-empty">
+        <div class="deck-empty__icon">📦</div>
+        <div style="font-weight:600;margin-bottom:6px;">デッキがまだありません</div>
+        <div style="font-size:13px;">右上の＋でデッキを作成しましょう</div>
+      </div>`;
+    return;
+  }
+
+  const deckBarColors = {
+    success: '#10B981', primary: '#3A7AFE', warning: '#F59E0B',
+    danger: '#EF4444', purple: '#8B5CF6', orange: '#F97316', teal: '#14B8A6'
+  };
+  const activeDeckId = state.settings.activeDeckId;
+
+  const html = decks.map(deck => {
+    const cardIds = state.cards.filter(c => (c.deckIds || []).includes(deck.id)).map(c => c.id);
+    const dueCount = state.cardStates.filter(cs =>
+      cardIds.includes(cs.cardId) &&
+      (cs.nextReviewAt <= Date.now() || (cs.reps === 0 && !cs.lastReviewedAt))
+    ).length;
+    const isActive = activeDeckId === deck.id;
+    const barColor = deckBarColors[deck.color] || '#3A7AFE';
+    return `
+      <div class="deck-card" onclick="showDeckDetail('${deck.id}')">
+        <div class="deck-card__header">
+          <div class="deck-card__color-bar" style="background:${barColor};"></div>
+          <div class="deck-card__name">${escapeHtml(deck.name)}</div>
+          ${isActive ? '<span class="deck-card__active-badge">学習中</span>' : ''}
+        </div>
+        ${deck.desc ? `<div class="deck-card__desc">${escapeHtml(deck.desc)}</div>` : ''}
+        <div class="deck-card__stats">
+          <span>${cardIds.length}枚</span>
+          <span>要復習 ${dueCount}枚</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `<div class="deck-list">${html}</div>`;
+}
+
+function openDeckEdit(deckId) {
+  const isNew = !deckId;
+  const deck  = isNew ? null : (state.decks || []).find(d => d.id === deckId);
+  editingDeckColor = isNew ? 'primary' : (deck?.color || 'primary');
+
+  document.getElementById('deck-edit-title').textContent = isNew ? 'デッキを追加' : 'デッキを編集';
+  document.getElementById('deck-edit-id').value   = deckId || '';
+  document.getElementById('deck-edit-name').value = deck?.name || '';
+  document.getElementById('deck-edit-desc').value = deck?.desc || '';
+
+  renderDeckColorPicker();
+  document.getElementById('deck-edit-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('deck-edit-name').focus(), 100);
+}
+
+function closeDeckEdit() {
+  document.getElementById('deck-edit-overlay').style.display = 'none';
+}
+
+function renderDeckColorPicker() {
+  const container = document.getElementById('deck-color-picker');
+  container.innerHTML = COLOR_OPTIONS.map(opt => `
+    <div class="color-swatch${editingDeckColor === opt.id ? ' selected' : ''}"
+      style="background:${opt.sample};"
+      title="${opt.label}"
+      onclick="selectDeckColor('${opt.id}')"></div>
+  `).join('');
+}
+
+function selectDeckColor(colorId) {
+  editingDeckColor = colorId;
+  renderDeckColorPicker();
+}
+
+function saveDeckEdit() {
+  const name = document.getElementById('deck-edit-name').value.trim();
+  if (!name) { showToast('デッキ名を入力してください', 'error'); return; }
+  const desc = document.getElementById('deck-edit-desc').value.trim();
+  const id   = document.getElementById('deck-edit-id').value;
+  const now  = Date.now();
+
+  if (!state.decks) state.decks = [];
+
+  if (id) {
+    const idx = state.decks.findIndex(d => d.id === id);
+    if (idx !== -1) state.decks[idx] = { ...state.decks[idx], name, desc, color: editingDeckColor, updatedAt: now };
+    showToast('デッキを更新しました', 'success');
+  } else {
+    const newId = 'deck-' + generateId().slice(0, 8);
+    state.decks.push({ id: newId, name, desc, color: editingDeckColor, createdAt: now, updatedAt: now });
+    showToast('デッキを作成しました', 'success');
+  }
+
+  saveState();
+  closeDeckEdit();
+  if (document.getElementById('deck-detail-overlay').style.display !== 'none') {
+    renderDeckDetail(id || state.decks[state.decks.length - 1].id);
+  }
+  renderDecks();
+}
+
+function showDeckDetail(deckId) {
+  currentDeckId = deckId;
+  deckSelectedCardIds = new Set();
+  renderDeckDetail(deckId);
+  document.getElementById('deck-detail-overlay').style.display = 'flex';
+}
+
+function closeDeckDetail() {
+  document.getElementById('deck-detail-overlay').style.display = 'none';
+  currentDeckId = null;
+  deckSelectedCardIds = new Set();
+}
+
+function openDeckEditFromDetail() {
+  if (currentDeckId) openDeckEdit(currentDeckId);
+}
+
+function renderDeckDetail(deckId) {
+  const deck = (state.decks || []).find(d => d.id === deckId);
+  if (!deck) return;
+
+  document.getElementById('deck-detail-title').textContent = deck.name;
+
+  const deckCards = state.cards.filter(c => (c.deckIds || []).includes(deckId));
+  const isActive  = state.settings.activeDeckId === deckId;
+  const deckBarColors = {
+    success:'#10B981',primary:'#3A7AFE',warning:'#F59E0B',
+    danger:'#EF4444',purple:'#8B5CF6',orange:'#F97316',teal:'#14B8A6'
+  };
+  const barColor = deckBarColors[deck.color] || '#3A7AFE';
+
+  const cardItemsHtml = deckCards.map(card => {
+    const cs = state.cardStates.find(s => s.cardId === card.id);
+    const checked = deckSelectedCardIds.has(card.id);
+    return `
+      <div class="deck-card-item">
+        <div class="deck-card-item__check${checked ? ' checked' : ''}"
+          onclick="toggleDeckCardSelect('${card.id}')"></div>
+        <div class="deck-card-item__body">
+          <div class="deck-card-item__front">${escapeHtml(card.front)}</div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;">${cs ? formatNextReview(cs) : ''}</div>
+        </div>
+        <button class="btn-icon" style="color:var(--color-danger);flex-shrink:0;"
+          onclick="removeCardFromDeck('${card.id}','${deckId}')" aria-label="デッキから外す">
+          <svg class="icon" width="16" height="16"><use href="#icon-x"/></svg>
+        </button>
+      </div>`;
+  }).join('');
+
+  const selectedCount = deckSelectedCardIds.size;
+
+  const container = document.getElementById('deck-detail-content');
+  container.innerHTML = `
+    <div class="deck-detail-actions">
+      <button class="btn-primary" style="flex:1;" onclick="startDeckSession('${deckId}')">
+        ${isActive ? '▶ このデッキで学習中' : '▶ このデッキで学習'}
+      </button>
+      ${isActive
+        ? `<button class="btn-secondary" onclick="clearActiveDeck()">解除</button>`
+        : ''}
+      <button class="btn-secondary" onclick="openDeckAddCards('${deckId}')">＋ カードを追加</button>
+      <button class="btn-danger" onclick="deleteDeck('${deckId}')">削除</button>
+    </div>
+    <div style="padding:0 var(--space-4);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:600;">${deckCards.length}枚のカード</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-text" style="font-size:12px;" onclick="selectAllDeckCards('${deckId}')">全選択</button>
+          <button class="btn-text" style="font-size:12px;" onclick="deselectAllDeckCards()">解除</button>
+        </div>
+      </div>
+      ${deckCards.length === 0
+        ? '<div style="text-align:center;padding:32px;color:var(--color-text-tertiary);font-size:13px;">カードがまだありません</div>'
+        : `<div>${cardItemsHtml}</div>`}
+    </div>
+    ${selectedCount > 0 ? `
+    <div class="deck-select-bar">
+      <span style="font-size:13px;">${selectedCount}枚選択中</span>
+      <button class="btn-primary" style="font-size:13px;" onclick="openBulkReviewDate()">復習日を設定</button>
+    </div>` : ''}`;
+}
+
+function toggleDeckCardSelect(cardId) {
+  if (deckSelectedCardIds.has(cardId)) deckSelectedCardIds.delete(cardId);
+  else deckSelectedCardIds.add(cardId);
+  renderDeckDetail(currentDeckId);
+}
+
+function selectAllDeckCards(deckId) {
+  state.cards.filter(c => (c.deckIds || []).includes(deckId)).forEach(c => deckSelectedCardIds.add(c.id));
+  renderDeckDetail(currentDeckId);
+}
+
+function deselectAllDeckCards() {
+  deckSelectedCardIds = new Set();
+  renderDeckDetail(currentDeckId);
+}
+
+function removeCardFromDeck(cardId, deckId) {
+  const idx = state.cards.findIndex(c => c.id === cardId);
+  if (idx === -1) return;
+  state.cards[idx] = { ...state.cards[idx], deckIds: (state.cards[idx].deckIds || []).filter(id => id !== deckId) };
+  saveState();
+  renderDeckDetail(deckId);
+  renderDecks();
+}
+
+function startDeckSession(deckId) {
+  state.settings.activeDeckId = deckId;
+  saveState();
+  closeDeckDetail();
+  navigateTo('home');
+  renderHome();
+  showToast('このデッキで学習を開始します', 'success');
+}
+
+function clearActiveDeck() {
+  state.settings.activeDeckId = null;
+  saveState();
+  renderDeckDetail(currentDeckId);
+  renderHome();
+  showToast('全体モードに戻りました');
+}
+
+function deleteDeck(deckId) {
+  const deck = (state.decks || []).find(d => d.id === deckId);
+  if (!deck) return;
+  if (!confirm(`「${deck.name}」を削除しますか？\nカードはデッキから外れますが削除されません。`)) return;
+
+  state.decks = (state.decks || []).filter(d => d.id !== deckId);
+  state.cards = state.cards.map(c => ({
+    ...c, deckIds: (c.deckIds || []).filter(id => id !== deckId)
+  }));
+  if (state.settings.activeDeckId === deckId) state.settings.activeDeckId = null;
+  saveState();
+  closeDeckDetail();
+  renderDecks();
+  renderHome();
+  showToast('デッキを削除しました');
+}
+
+/* ===== デッキへのカード追加 ===== */
+
+function openDeckAddCards(deckId) {
+  currentDeckId = deckId;
+  deckAddCardsSelected = new Set(
+    state.cards.filter(c => (c.deckIds || []).includes(deckId)).map(c => c.id)
+  );
+  document.getElementById('deck-addcards-search').value = '';
+  renderDeckAddCardslist();
+  document.getElementById('deck-addcards-overlay').style.display = 'flex';
+}
+
+function closeDeckAddCards() {
+  document.getElementById('deck-addcards-overlay').style.display = 'none';
+}
+
+function renderDeckAddCardslist() {
+  const q = document.getElementById('deck-addcards-search').value.trim().toLowerCase();
+  const filtered = q
+    ? state.cards.filter(c => c.front.toLowerCase().includes(q) || c.back.toLowerCase().includes(q))
+    : state.cards;
+
+  const html = filtered.map(card => {
+    const checked = deckAddCardsSelected.has(card.id);
+    const chName  = getChapterName(card.chapter);
+    return `
+      <div class="deck-card-item" onclick="toggleDeckAddCardSelect('${card.id}')">
+        <div class="deck-card-item__check${checked ? ' checked' : ''}"></div>
+        <div class="deck-card-item__body">
+          <div class="deck-card-item__front">${escapeHtml(card.front)}</div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;">${escapeHtml(chName)}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('deck-addcards-list').innerHTML = filtered.length
+    ? html
+    : '<div style="text-align:center;padding:32px;color:var(--color-text-tertiary);">カードが見つかりません</div>';
+}
+
+function toggleDeckAddCardSelect(cardId) {
+  if (deckAddCardsSelected.has(cardId)) deckAddCardsSelected.delete(cardId);
+  else deckAddCardsSelected.add(cardId);
+  renderDeckAddCardslist();
+}
+
+function confirmAddCardsToDeck() {
+  if (!currentDeckId) return;
+  state.cards = state.cards.map(card => {
+    const deckIds = new Set(card.deckIds || []);
+    if (deckAddCardsSelected.has(card.id)) deckIds.add(currentDeckId);
+    else deckIds.delete(currentDeckId);
+    return { ...card, deckIds: [...deckIds] };
+  });
+  saveState();
+  closeDeckAddCards();
+  renderDeckDetail(currentDeckId);
+  renderDecks();
+  showToast('カードを更新しました', 'success');
+}
+
+/* ===== 一括復習日設定 ===== */
+
+function openBulkReviewDate() {
+  const selectedIds = [...deckSelectedCardIds];
+  if (selectedIds.length === 0) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'card-overlay';
+  overlay.id = 'bulk-date-overlay';
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <header class="card-overlay__header">
+      <button class="btn-icon" onclick="document.getElementById('bulk-date-overlay').remove()">
+        <svg class="icon" width="20" height="20"><use href="#icon-x"/></svg>
+      </button>
+      <span class="card-overlay__title">${selectedIds.length}枚の復習日を設定</span>
+      <div style="width:44px;"></div>
+    </header>
+    <div class="card-overlay__content">
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:16px;">
+        クイック選択
+      </div>
+      <div class="bulk-review-date-row">
+        <button class="date-chip" onclick="applyBulkReviewDate(0)">今日</button>
+        <button class="date-chip" onclick="applyBulkReviewDate(1)">明日</button>
+        <button class="date-chip" onclick="applyBulkReviewDate(3)">3日後</button>
+        <button class="date-chip" onclick="applyBulkReviewDate(7)">1週間後</button>
+        <button class="date-chip" onclick="applyBulkReviewDate(14)">2週間後</button>
+        <button class="date-chip" onclick="applyBulkReviewDate(30)">1ヶ月後</button>
+      </div>
+      <div style="font-size:13px;color:var(--color-text-secondary);margin:16px 0 8px;">
+        日付を指定
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="date" class="input-field" id="bulk-date-picker"
+          value="${new Date().toISOString().split('T')[0]}"
+          style="flex:1;">
+        <button class="btn-primary" onclick="applyBulkReviewDateFromPicker()">設定</button>
+      </div>
+    </div>`;
+  document.getElementById('app').appendChild(overlay);
+}
+
+function applyBulkReviewDate(days) {
+  const ts = new Date().setHours(0,0,0,0) + days * 24 * 60 * 60 * 1000;
+  _applyBulkDate(ts);
+}
+
+function applyBulkReviewDateFromPicker() {
+  const val = document.getElementById('bulk-date-picker').value;
+  if (!val) return;
+  const ts = new Date(val).setHours(0,0,0,0);
+  _applyBulkDate(ts);
+}
+
+function _applyBulkDate(ts) {
+  deckSelectedCardIds.forEach(cardId => {
+    const idx = state.cardStates.findIndex(cs => cs.cardId === cardId);
+    if (idx !== -1) state.cardStates[idx] = { ...state.cardStates[idx], nextReviewAt: ts };
+  });
+  saveState();
+  document.getElementById('bulk-date-overlay')?.remove();
+  deckSelectedCardIds = new Set();
+  renderDeckDetail(currentDeckId);
+  showToast('復習日を設定しました', 'success');
 }
 
 /* ===== セキュリティユーティリティ ===== */
